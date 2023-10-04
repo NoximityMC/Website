@@ -8,6 +8,7 @@ export default function Navbar() {
         <nav className={styles.nav}>
             <section className={styles.width}>
                 <div className={styles.left}>
+                    //Logo
                     <Image
                         src={logo}
                         alt="Noximity"
