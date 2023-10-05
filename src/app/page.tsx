@@ -1,10 +1,12 @@
-import Navbar from "./components/navbar";
-import styles from "./page.module.css"
+import { getServerSession } from "next-auth/next";
+import { options } from "./api/auth/[...nextauth]/options";
 
-export default function Home() {
+export default async function Home() {
+  const session = await getServerSession(options)
   return (
-    <main className="styles.main">
-      <Navbar />
-    </main>
+    <>
+      <main className="styles.main">
+      </main>
+    </>
   )
 }

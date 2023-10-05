@@ -1,9 +1,24 @@
-import Image from "next/image";
-import { HiMiniShoppingCart, HiUserPlus } from "react-icons/hi2";
-import logo from "../assets/logos/full/NoximityCompanyLight.svg";
-import styles from "../style/navbar.module.scss";
+'use client'
+
+import { useSession } from 'next-auth/react';
+import Image from 'next/image';
+import { redirect } from 'next/navigation';
+import { HiMiniShoppingCart, HiUserPlus } from 'react-icons/hi2';
+import logo from '../assets/logos/full/NoximityCompanyLight.svg';
+import styles from '../style/navbar.module.scss';
+import usercardstyles from '../style/usercard.module.scss';
+import NavBarLogin from './navbarlogin';
+
 
 export default function Navbar() {
+
+    const { data: session } = useSession({
+        required: true,
+        onUnauthenticated() {
+            redirect('/api/auth/signin?callbackUrl=/client')
+        }
+    })
+
     return (
         <nav className={styles.nav}>
             <section className={styles.width}>
@@ -24,11 +39,12 @@ export default function Navbar() {
                 </div>
                 <div className={styles.right}>
                     <a href="/">
-                        <HiMiniShoppingCart color={"#b6afdc"} /> Search
+                        <HiMiniShoppingCart color="#b6afdc" /> Search
                     </a>
                     <a href="/">
-                        <HiUserPlus color={"#b6afdc"} /> Login
+                        <HiUserPlus color="#b6afdc" /> Account
                     </a>
+                    <NavBarLogin user={session?.user} pagetype={"Client"} />
                 </div>
             </section>
         </nav>
