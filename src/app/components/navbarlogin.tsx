@@ -39,10 +39,22 @@ export default function Card({ user, pagetype }: Props) {
         />
     ) : null
 
-    return (
-        <section className={styles.displayLoginInfo}>
-            {userImage}
+    const userName = user?.name ? (
+        <p className={styles.userName}>
             {user?.name}
-        </section>
+        </p>
+    ) : null
+
+    return (
+        <div>
+            <section className={styles.displayLoginInfo}>
+                <a className={styles.navProfile}>
+                    <div>
+                        {userImage}
+                        {userName}
+                    </div>
+                </a>
+            </section>
+        </div>
     )
 }

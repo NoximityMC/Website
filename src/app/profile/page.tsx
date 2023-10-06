@@ -11,6 +11,10 @@ export default function Profile() {
       redirect('/api/auth/signin?callbackUrl=/profile')
     }
   })
+
+
+
+
   return (
     <main className="styles.main">
       <UserCard user={session?.user} pagetype={"Client"} />
