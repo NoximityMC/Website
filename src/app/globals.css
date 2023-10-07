@@ -1,6 +1,8 @@
 :root {
-  --text: #b6afdc;
+  --text: #c0becc;
+  --roleText: #ebebeb;
   --background: #08000e;
+  --navbarbg: #15141f60;
   --primary: #908ff3;
   --secondary: #15141f;
   --accent: #6560cc;

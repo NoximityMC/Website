@@ -11,6 +11,11 @@ export const metadata: Metadata = {
   description: 'Official Noximity website',
 }
 
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+
 export default function RootLayout({
   children,
 }: {
@@ -19,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AuthProvider >
+        <AuthProvider>
           <Navbar />
           <main>
             {children}
@@ -27,5 +32,5 @@ export default function RootLayout({
         </AuthProvider>
       </body>
     </html>
-  )
+  );
 }

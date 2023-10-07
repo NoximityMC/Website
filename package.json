@@ -4,14 +4,22 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "devp": "next dev --hostname 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@fontsource/roboto": "^5.0.8",
+    "@mui/material": "^5.14.12",
+    "bottleneck": "^2.19.5",
     "dotenv": "^16.3.1",
+    "framer-motion": "^10.16.4",
     "next": "13.5.4",
     "next-auth": "^4.23.2",
+    "node-cache": "^5.1.2",
     "react": "^18",
     "react-dom": "^18",
     "react-icons": "^4.11.0"
@@ -22,7 +30,8 @@
     "@types/react-dom": "^18",
     "eslint": "^8",
     "eslint-config-next": "13.5.4",
-    "sass": "^1.68.0",
+    "sass": "^1.69.0",
+    "tailwindcss": "^3.3.3",
     "typescript": "^5"
   }
 }

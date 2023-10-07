@@ -5,6 +5,11 @@ type User = {
     name?: string | null | undefined;
     email?: string | null | undefined;
     image?: string | null | undefined;
+    rank?: {
+        name: string;
+        color: string;
+        id: number;
+    } | null | undefined;
 } | undefined
 
 type Props = {
@@ -13,8 +18,6 @@ type Props = {
 }
 
 export default function Card({ user, pagetype }: Props) {
-
-    //console.log(user)
 
     const greeting = user?.name ? (
         <div>
@@ -45,16 +48,23 @@ export default function Card({ user, pagetype }: Props) {
         </p>
     ) : null
 
+    const userRank = user?.rank ? (
+        <p className={styles.userRank} style={{ backgroundColor: `#${(user?.rank?.color)?.toString(16)}`}}>
+            {user?.rank.name}
+        </p>
+    ) : null
+
     return (
-        <div>
-            <section className={styles.displayLoginInfo}>
-                <a className={styles.navProfile}>
-                    <div>
-                        {userImage}
-                        {userName}
-                    </div>
-                </a>
-            </section>
-        </div>
-    )
+      <div>
+        <section className={styles.displayLoginInfo}>
+          <a className={styles.navProfile}>
+            <>
+              {userImage}
+              {userName}
+              {userRank}
+            </>
+          </a>
+        </section>
+      </div>
+    );
 }
