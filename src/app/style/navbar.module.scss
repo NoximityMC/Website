@@ -116,3 +116,19 @@
         display: block;
     }
 }
+
+.trigger {
+    border: none;  
+    &:focus-visible {
+        outline: var(--primary);
+    } 
+}
+
+.content {
+    background-color: white;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    padding: 5px;
+    border-radius: 6px;
+    min-width: 150px;
+    color: black
+}

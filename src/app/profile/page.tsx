@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react'
 import { redirect } from 'next/navigation'
 import UserCard from '../components/usercard'
 
+
 export default function Profile() {
   const { data: session } = useSession({
     required: true,

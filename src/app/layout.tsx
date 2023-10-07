@@ -3,18 +3,15 @@ import { Inter } from 'next/font/google'
 import Navbar from './components/navbar'
 import AuthProvider from './context/AuthProvider'
 import './globals.css'
+import '@radix-ui/themes/styles.css';
+import { Theme } from '@radix-ui/themes'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Noximity',
+  title: 'Noximity', 
   description: 'Official Noximity website',
 }
-
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/400.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
 
 export default function RootLayout({
   children,
@@ -22,14 +19,16 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className='dark'>
       <body className={inter.className}>
-        <AuthProvider>
-          <Navbar />
-          <main>
-            {children}
-          </main>
-        </AuthProvider>
+        <Theme appearance='dark'>
+          <AuthProvider>
+            <Navbar />
+            <main>
+              {children}
+            </main>
+          </AuthProvider>
+        </Theme>
       </body>
     </html>
   );

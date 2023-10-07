@@ -1,23 +1,25 @@
 'use client'
 
-import { signIn, signOut, useSession } from 'next-auth/react';
+import { signIn, signOut } from 'next-auth/react';
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { PiBasketFill, PiDiscordLogoDuotone, PiSignOut } from 'react-icons/pi';
 import logo from '../assets/logos/full/NoximityCompanyLight.svg';
 import styles from '../style/navbar.module.scss';
 import NavBarLogin from './navbarlogin';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { useSession } from '../lib/next-auth-react-query';
 
 export default function Navbar() {
 
-    const { data: session } = useSession({
-        required: false,
-        onUnauthenticated() {
-            redirect('/api/auth/signin?callbackUrl=/client')
-        }
+    const [session, loading] = useSession({
+      required: false,
+      redirectTo: '/api/auth/signin?callbackUrl=/client',
+      queryConfig: {
+        staleTime: 60 * 1000 * 60 * 3, // 3 hours,
+        refetchInterval: 60 * 1000 * 5, // 5 minutes
+      }
     })
-
-
     
     if (session == null) {
         return (
@@ -58,9 +60,20 @@ export default function Navbar() {
             </div>
             <div className={styles.right}>
               <>
-                <div id="profile">
-                  <NavBarLogin user={session?.user} pagetype={"Client"} />
-                </div>
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger className={styles.trigger}>
+                  <div id="profile">
+                    <div>
+                      <NavBarLogin user={session?.user} pagetype={"Client"} />
+                    </div>
+                  </div>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content className={styles.content}>
+                  <DropdownMenu.Item onClick={function() {
+                    signOut()
+                  }}>Logout</DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Root>
               </>
             </div>
           </nav>
