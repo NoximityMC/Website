@@ -2,45 +2,43 @@
 
 import { signIn, signOut } from 'next-auth/react';
 import Image from 'next/image';
-import { redirect } from 'next/navigation';
-import { PiBasketFill, PiDiscordLogoDuotone, PiSignOut } from 'react-icons/pi';
+import { useRouter } from 'next/navigation';
+
+import { GoPerson, GoShieldLock, GoSignOut, GoSignIn } from "react-icons/go";
 import logo from '../assets/logos/full/NoximityCompanyLight.svg';
 import styles from '../style/navbar.module.scss';
 import NavBarLogin from './navbarlogin';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { useSession } from '../lib/next-auth-react-query';
+import { Session } from 'next-auth';
+import { AuthCheck } from '../lib/authCheck';
 
-export default function Navbar() {
-
-    const [session, loading] = useSession({
-      required: false,
-      redirectTo: '/api/auth/signin?callbackUrl=/client',
-      queryConfig: {
-        staleTime: 60 * 1000 * 60 * 3, // 3 hours,
-        refetchInterval: 60 * 1000 * 5, // 5 minutes
-      }
-    })
-    
+export default function Navbar({session}: {session: Session}) {
+    const router = useRouter();
     if (session == null) {
         return (
           <nav className={styles.navbar}>
-              <div className={styles.left}>
-                <Image
-                  src={logo}
-                  alt="Noximity"
-                  width={150}
-                  height={35}
-                  priority={true}
-                  quality={100}
-                  className={styles.logo}
-                />
-                <a href="/">VoidBound</a>
-              </div>
-              <div className={styles.right}>
-                <a onClick={() => signIn("discord")}>
-                  <PiDiscordLogoDuotone size="20px" color="#b6afdc" /> Sign In
-                </a>
-              </div>
+            <div className={styles.left}>
+              <Image
+                src={logo}
+                alt="Noximity"
+                width={150}
+                height={35}
+                priority={true}
+                quality={100}
+                className={styles.logo}
+                onClick={function () {
+                  router.push("/");
+                }}
+                style={{ cursor: "pointer" }}
+              />
+              <a href="/">VoidBound</a>
+            </div>
+            <div className={styles.right}>
+              <a onClick={() => signIn("discord")} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                <GoSignIn size="20px" color="#b6afdc" />
+                Sign In
+              </a>
+            </div>
           </nav>
         );
     } else {
@@ -55,25 +53,59 @@ export default function Navbar() {
                 priority={true}
                 quality={100}
                 className={styles.logo}
+                onClick={function () {
+                  router.push("/");
+                }}
+                style={{ cursor: "pointer" }}
               />
               <a href="/">VoidBound</a>
             </div>
             <div className={styles.right}>
               <>
-              <DropdownMenu.Root>
-                <DropdownMenu.Trigger className={styles.trigger}>
-                  <div id="profile">
-                    <div>
-                      <NavBarLogin user={session?.user} pagetype={"Client"} />
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger className={styles.trigger}>
+                    <div id="profile">
+                      <div>
+                        <NavBarLogin user={session?.user} pagetype={"Client"} />
+                      </div>
                     </div>
-                  </div>
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Content className={styles.content}>
-                  <DropdownMenu.Item onClick={function() {
-                    signOut()
-                  }}>Logout</DropdownMenu.Item>
-                </DropdownMenu.Content>
-              </DropdownMenu.Root>
+                  </DropdownMenu.Trigger>
+                  <DropdownMenu.Content className={styles.content}>
+                    <DropdownMenu.Item
+                      onClick={function () {
+                        router.push("/profile");
+                      }}
+                    >
+                      <div className={styles.contentIcon}>
+                        <GoPerson size="20px" color="#b6afdc" />
+                      </div>
+                      Profile
+                    </DropdownMenu.Item>
+                    {AuthCheck(session, false) ? (
+                      <DropdownMenu.Item
+                        onClick={function () {
+                          router.push("/admin");
+                        }}
+                      >
+                        <div className={styles.contentIcon}>
+                          <GoShieldLock size="20px" color="#b6afdc" />
+                        </div>
+                        Admin
+                      </DropdownMenu.Item>
+                    ) : null}
+                    <DropdownMenu.Item
+                      onClick={function () {
+                        signOut();
+                      }}
+                    >
+                      <div className={styles.contentIcon}>
+                        <GoSignOut size="20px" color="#b6afdc" />
+                      </div>
+                      Logout
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Arrow className={styles.arrow} />
+                  </DropdownMenu.Content>
+                </DropdownMenu.Root>
               </>
             </div>
           </nav>

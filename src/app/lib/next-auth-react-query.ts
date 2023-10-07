@@ -10,10 +10,15 @@ export async function fetchSession() {
   return null
 }
 
+interface QueryConfig {
+  onSettled?: (data: any, error: any) => void;
+  [key: string]: any;
+}
+
 export function useSession({
-  required,
+  required = false,
   redirectTo = "/api/auth/signin?error=SessionExpired",
-  queryConfig = {},
+  queryConfig = {} as QueryConfig,
 } = {}) {
   const query = useQuery(["session"], fetchSession, {
     ...queryConfig,

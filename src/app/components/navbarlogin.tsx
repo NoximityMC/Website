@@ -6,9 +6,9 @@ type User = {
     email?: string | null | undefined;
     image?: string | null | undefined;
     rank?: {
-        name: string;
-        color: string;
-        id: number;
+        name?: string;
+        color?: string;
+        id?: number;
     } | null | undefined;
 } | undefined
 
@@ -48,8 +48,16 @@ export default function Card({ user, pagetype }: Props) {
         </p>
     ) : null
 
+    var rankColor = '';
+    if (user?.rank?.color) {
+        const colorAsNumber = parseInt(user?.rank?.color, 16);
+        if (!isNaN(colorAsNumber)) {
+            rankColor = '#' + colorAsNumber.toString(16);
+        }
+    }
+
     const userRank = user?.rank ? (
-        <p className={styles.userRank} style={{ backgroundColor: `#${(user?.rank?.color)?.toString(16)}`}}>
+        <p className={styles.userRank} style={{ backgroundColor: `${rankColor}`}}>
             {user?.rank.name}
         </p>
     ) : null

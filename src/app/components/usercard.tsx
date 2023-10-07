@@ -1,5 +1,6 @@
 import Image from "next/image"
 import styles from "../style/usercard.module.scss"
+import {GoVerified} from "react-icons/go"
 
 type User = {
     name?: string | null | undefined;

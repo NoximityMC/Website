@@ -125,10 +125,40 @@
 }
 
 .content {
-    background-color: white;
+    background-color: var(--secondary);
+    color: var(--text);
     box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    padding: 5px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 15px;
+    font-size: 1.1rem;
     border-radius: 6px;
-    min-width: 150px;
-    color: black
+    margin: 0 10px;
+    :hover {
+        transition: 0.2s ease-in-out;
+        cursor: pointer;
+        color: var(--primary);
+    }
+    :focus-visible {
+        outline: none !important;
+    }
+    div{ 
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+.contentIcon {
+    margin-right: 0.25vw;
+}
+
+.arrow {
+    width: 0; 
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid var(--text);
 }
