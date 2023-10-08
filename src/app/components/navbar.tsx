@@ -10,7 +10,7 @@ import styles from '../style/navbar.module.scss';
 import NavBarLogin from './navbarlogin';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { Session } from 'next-auth';
-import { AuthCheck } from '../lib/authCheck';
+import { AuthCheck } from '../lib/misc';
 
 export default function Navbar({session}: {session: Session}) {
     const router = useRouter();

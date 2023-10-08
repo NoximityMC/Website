@@ -4,10 +4,10 @@ import { redirect } from 'next/navigation'
 import UserCard from '../components/usercard'
 import { useSession } from '../lib/next-auth-react-query'
 import { Loading } from '../lib/Loading'
-import { AuthCheck } from '../lib/authCheck'
+import { AuthCheck } from '../lib/misc'
 
 
-export default function Profile() {
+export default function Admin() {
     const [session, loading] = useSession({
         required: false,
         redirectTo: '/api/auth/signin?callbackUrl=/client',
