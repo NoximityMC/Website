@@ -1,4 +1,5 @@
 import { getToken } from "next-auth/jwt";
+import { getSession } from "next-auth/react";
 
 export function AuthCheck(session: any, admin: boolean) {
     if (session.user) {
@@ -13,8 +14,9 @@ export function AuthCheck(session: any, admin: boolean) {
 
 export async function isAuthorized(req:any) {
     const token = await getToken({req});
+    const session = getSession();
     const apiKey = req.headers.get('api-key');
-    const keyRes = await fetch(`${process.env.HOSTNAME}/api/key/${apiKey}`, {
+    const keyRes = await fetch(`${process.env.NEXTAUTH_URL}/api/key/${apiKey}`, {
         cache: 'no-store'
     });
     var key = false;
@@ -22,7 +24,7 @@ export async function isAuthorized(req:any) {
         var keyJson = await keyRes.json();
         key = keyJson.success;
     }
-    return token || key;
+    return !!token || !!session || !!key;
 }
 
 function extractFirstPart(inputString:string) {
