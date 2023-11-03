@@ -1,11 +1,11 @@
 :root {
-  --text: #c0becc;
+  --text: #ddd1d5;
   --roleText: #ebebeb;
   --background: #08000e;
-  --navbarbg: #15141f60;
-  --primary: #908ff3;
-  --secondary: #15141f;
-  --accent: #6560cc;
+  --navbarbg: #08000e60;
+  --primary: #930b3b;
+  --secondary: #2f0413;
+  --accent: #ed125f;
 }
 
 body {
