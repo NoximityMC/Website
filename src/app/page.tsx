@@ -21,18 +21,22 @@ export default async function Home() {
     )
   }
 
-  const news = await newsRes.json();
+  var news = await newsRes.json();
+
+  news = news.slice(0, 5);
 
   return (
     <>
       <main className={styles.main}>
         <div className={styles.mainInner}>
           <h1>Latest News</h1>
-          {news.map((item:any) => {
-            return (
-              <NewsItem key={item.id} news={item} />
-            )
-          })}
+          <div className={styles.newMain}>
+            {news.map((item:any) => {
+              return (
+                <NewsItem key={item.id} news={item} />
+              )
+            })}
+          </div>
         </div>
       </main>
     </>

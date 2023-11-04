@@ -10,6 +10,8 @@
 
 body {
   background-color: var(--background) !important;
+  margin: 0;
+  padding: 0;
 }
 
 *{

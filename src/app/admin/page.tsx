@@ -19,9 +19,13 @@ export default function Admin() {
           refetchInterval: 60 * 1000 * 5, // 5 minutes
         }
     })
+    
+    useEffect(() => {
+        console.log(value);
+    }, [value])
 
     if (!AuthCheck(session, false)) {
-        redirect('/');
+        return redirect('/');
     }
 
     if (loading) {

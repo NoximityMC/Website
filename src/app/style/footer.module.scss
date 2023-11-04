@@ -1,0 +1,50 @@
+.footer {
+    font-size: 13px;
+    color: #e9e8e6;
+    background: #1d1913;
+    margin-top: 20px;
+}
+
+.footerInner {
+    max-width: 1200px;
+    padding: 0 10px;
+    margin: 0 auto;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.footerColumns {
+    display: flex;
+
+    .footerColumn {
+        width: 25%;
+        padding: 16px;
+        font-size: 13px;
+        color: #bbb;
+        line-height: 1.8;
+    }
+
+    .footerColumn:not(:last-of-type) {
+        border-right: 1px solid rgba(255,255,255,0.1);
+    }
+}
+
+.footerLower {
+    padding: 18px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    background: #18150e;
+    color: #433d2e;
+
+    .footerInner {
+        display: flex;
+        padding: 0;
+    }
+
+    .footerCopyright {
+        flex: 1;
+        text-align: left;
+        font-size: 13px;
+    }
+}

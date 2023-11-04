@@ -11,10 +11,25 @@
 
 .mainInner {
     margin-left: 1vw;
+    width: 100%;
+}
+
+.newMain {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .newsContainer {
     margin-bottom: 20px;
+    width: 50vw;
+
+    img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+    }
 }
 
 .newsContainerInner {

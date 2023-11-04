@@ -2,6 +2,7 @@
 
 import { Loading } from "../lib/Loading";
 import { useSession } from "../lib/next-auth-react-query"
+import { Footer } from "./Footer";
 import Navbar from "./navbar"
 
 export const MainComponent = ({children}: {children: React.ReactNode}) => {
@@ -26,6 +27,7 @@ export const MainComponent = ({children}: {children: React.ReactNode}) => {
             <main>
                 {children}
             </main>
+            <Footer />
         </>
     )
 }

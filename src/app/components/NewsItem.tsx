@@ -6,8 +6,8 @@ import moment from 'moment-timezone';
 
 export const NewsItem = async ({news} : {news: any}) => {
     var content = news.content;
-    if (content.includes('&lt;stop&gt;')) {
-        content = content.split('&lt;stop&gt;')[0];
+    if (content.includes('<stop>')) {
+        content = content.split('<stop>')[0];
     }
 
     const author = await getDiscordInfo(news.authorId);
@@ -30,13 +30,13 @@ export const NewsItem = async ({news} : {news: any}) => {
             <div className={styles.newsContainerInner}>
                 <h2 className={styles.newsHeader}>
                     <time title={dateObject.format('MMM D, YYYY [at] hh:mm A')} style={{ float: 'right' }}>{formattedDate}</time>
-                    <a href="/">{news.title}</a>
+                    <a href={`/news/${news.slug}`}>{news.title}</a>
                 </h2>
                 <div className={styles.newsBody + ' ' + styles.newsRow}>
                     <div className={styles.contentWrapper}>
                         {parse(content)}
                     </div>
-                    <a href="/" className={styles.button} style={{ float: 'right' }}>Continue reading...</a>
+                    <a href={`/news/${news.slug}`} className={styles.button} style={{ float: 'right' }}>Continue reading...</a>
                 </div>
                 <div className={styles.newsFooter}>
                     by <a href="/">{author.name}</a> at <time>{dateObject.format('hh:mm A')}</time>
