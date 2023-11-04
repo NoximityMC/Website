@@ -1,4 +1,3 @@
-
 import { isAuthorized } from "@/app/lib/misc";
 import { NextResponse } from "next/server";
 

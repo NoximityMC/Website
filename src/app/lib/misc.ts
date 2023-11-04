@@ -1,5 +1,6 @@
 import { getToken } from "next-auth/jwt";
 import { getSession } from "next-auth/react";
+import { Fetcher } from "swr";
 
 export function AuthCheck(session: any, admin: boolean) {
     if (session.user) {
@@ -27,7 +28,7 @@ export async function isAuthorized(req:any) {
     return !!token || !!session || !!key;
 }
 
-function extractFirstPart(inputString:string) {
+export function extractFirstPart(inputString:string) {
     // Check if the inputString contains " - "
     if (inputString.includes(" - ")) {
       // Split the inputString by " - " and return the first part
@@ -145,3 +146,5 @@ export async function getDiscordInfo(userId: number, getSession = false) {
         };
     }
 }
+
+export const fetcher = (url: string) => fetch(url).then(res => res.json());

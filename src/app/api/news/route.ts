@@ -10,5 +10,5 @@ export async function GET(req:any, {params}: any) {
     }
     const data = await query('SELECT * FROM news ORDER BY `createdAt` DESC');
 
-    return NextResponse.json(data, { status: 200});
+    return NextResponse.json({ success: true, data: data }, { status: 200});
 }

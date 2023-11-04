@@ -1,16 +1,21 @@
-import ReactMarkdown from "react-markdown"
 import styles from "../style/main.module.scss"
 import parse from 'html-react-parser'
-import { getDiscordInfo } from "../lib/misc";
+import { fetcher } from "../lib/misc";
 import moment from 'moment-timezone';
+import useSWR from "swr";
 
-export const NewsItem = async ({news} : {news: any}) => {
+export const NewsItem = ({news} : {news: any}) => {
     var content = news.content;
     if (content.includes('<stop>')) {
         content = content.split('<stop>')[0];
     }
 
-    const author = await getDiscordInfo(news.authorId);
+    const { data, error, isLoading } = useSWR(() => '/api/discord/member/' + news.authorId, fetcher);
+
+    if (error) return (<></>)
+  	if (isLoading) return (<></>)
+
+    const author = data.data;
 
     const dateObject = moment(news.createdAt);
 
