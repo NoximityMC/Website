@@ -1,1 +1,395 @@
-!function(){"use strict";var e=tinymce.util.Tools.resolve("tinymce.PluginManager");let hasProto=(e,t,o)=>{var r;return!!o(e,t.prototype)||(null===(r=e.constructor)||void 0===r?void 0:r.name)===t.name},typeOf=e=>{let t=typeof e;return null===e?"null":"object"===t&&Array.isArray(e)?"array":"object"===t&&hasProto(e,String,(e,t)=>t.isPrototypeOf(e))?"string":t},isSimpleType=e=>t=>typeof t===e,isString=e=>"string"===typeOf(e),t=isSimpleType("boolean"),isNullable=e=>null==e,isNonNullable=e=>!isNullable(e),o=isSimpleType("function"),r=isSimpleType("number"),compose1=(e,t)=>o=>e(t(o)),never=()=>!1;let Optional=class Optional{constructor(e,t){this.tag=e,this.value=t}static some(e){return new Optional(!0,e)}static none(){return Optional.singletonNone}fold(e,t){return this.tag?t(this.value):e()}isSome(){return this.tag}isNone(){return!this.tag}map(e){return this.tag?Optional.some(e(this.value)):Optional.none()}bind(e){return this.tag?e(this.value):Optional.none()}exists(e){return this.tag&&e(this.value)}forall(e){return!this.tag||e(this.value)}filter(e){return!this.tag||e(this.value)?this:Optional.none()}getOr(e){return this.tag?this.value:e}or(e){return this.tag?this:e}getOrThunk(e){return this.tag?this.value:e()}orThunk(e){return this.tag?this:e()}getOrDie(e){if(this.tag)return this.value;throw Error(null!=e?e:"Called getOrDie on None")}static from(e){return isNonNullable(e)?Optional.some(e):Optional.none()}getOrNull(){return this.tag?this.value:null}getOrUndefined(){return this.value}each(e){this.tag&&e(this.value)}toArray(){return this.tag?[this.value]:[]}toString(){return this.tag?`some(${this.value})`:"none()"}};Optional.singletonNone=new Optional(!1);let map=(e,t)=>{let o=e.length,r=Array(o);for(let n=0;n<o;n++){let o=e[n];r[n]=t(o,n)}return r},each=(e,t)=>{for(let o=0,r=e.length;o<r;o++){let r=e[o];t(r,o)}},filter=(e,t)=>{let o=[];for(let r=0,n=e.length;r<n;r++){let n=e[r];t(n,r)&&o.push(n)}return o},fromDom=e=>{if(null==e)throw Error("Node cannot be null or undefined");return{dom:e}},n={fromHtml:(e,t)=>{let o=(t||document).createElement("div");if(o.innerHTML=e,!o.hasChildNodes()||o.childNodes.length>1){let t="HTML does not have a single root node";throw console.error(t,e),Error(t)}return fromDom(o.childNodes[0])},fromTag:(e,t)=>{let o=(t||document).createElement(e);return fromDom(o)},fromText:(e,t)=>{let o=(t||document).createTextNode(e);return fromDom(o)},fromDom,fromPoint:(e,t,o)=>Optional.from(e.dom.elementFromPoint(t,o)).map(fromDom)},is=(e,t)=>{let o=e.dom;if(1!==o.nodeType)return!1;if(void 0!==o.matches)return o.matches(t);if(void 0!==o.msMatchesSelector)return o.msMatchesSelector(t);if(void 0!==o.webkitMatchesSelector)return o.webkitMatchesSelector(t);if(void 0!==o.mozMatchesSelector)return o.mozMatchesSelector(t);throw Error("Browser lacks native selectors")};"undefined"!=typeof window?window:Function("return this;")();let name=e=>{let t=e.dom.nodeName;return t.toLowerCase()},type=e=>e.dom.nodeType,isType=e=>t=>type(t)===e,i=isType(1),l=isType(3),a=isType(9),s=isType(11),owner=e=>n.fromDom(e.dom.ownerDocument),parent=e=>Optional.from(e.dom.parentNode).map(n.fromDom),children$2=e=>map(e.dom.childNodes,n.fromDom),rawSet=(e,o,n)=>{if(isString(n)||t(n)||r(n))e.setAttribute(o,n+"");else throw console.error("Invalid call to Attribute.set. Key ",o,":: Value ",n,":: Element ",e),Error("Attribute value was not simple")},set=(e,t,o)=>{rawSet(e.dom,t,o)},remove=(e,t)=>{e.dom.removeAttribute(t)},isShadowRoot=e=>s(e)&&isNonNullable(e.dom.host),d=o(Element.prototype.attachShadow)&&o(Node.prototype.getRootNode),m=d?e=>n.fromDom(e.dom.getRootNode()):e=>a(e)?e:owner(e),getShadowRoot=e=>{let t=m(e);return isShadowRoot(t)?Optional.some(t):Optional.none()},getShadowHost=e=>n.fromDom(e.dom.host),inBody=e=>{let t=l(e)?e.dom.parentNode:e.dom;if(null==t||null===t.ownerDocument)return!1;let o=t.ownerDocument;return getShadowRoot(n.fromDom(t)).fold(()=>o.body.contains(t),compose1(inBody,getShadowHost))},ancestor$1=(e,t,r)=>{let i=e.dom,l=o(r)?r:never;for(;i.parentNode;){i=i.parentNode;let e=n.fromDom(i);if(t(e))return Optional.some(e);if(l(e))break}return Optional.none()},ancestor=(e,t,o)=>ancestor$1(e,e=>is(e,t),o),isSupported=e=>void 0!==e.style&&o(e.style.getPropertyValue),get=(e,t)=>{let o=e.dom,r=window.getComputedStyle(o),n=r.getPropertyValue(t);return""!==n||inBody(e)?n:getUnsafeProperty(o,t)},getUnsafeProperty=(e,t)=>isSupported(e)?e.style.getPropertyValue(t):"",getDirection=e=>"rtl"===get(e,"direction")?"rtl":"ltr",children$1=(e,t)=>filter(children$2(e),t),children=(e,t)=>children$1(e,e=>is(e,t)),getParentElement=e=>parent(e).filter(i),getNormalizedBlock=(e,t)=>{let o=t?ancestor(e,"ol,ul"):Optional.some(e);return o.getOr(e)},isListItem=e=>i(e)&&"li"===name(e),setDirOnElements=(e,t,o)=>{each(t,t=>{let r=n.fromDom(t),i=isListItem(r),l=getNormalizedBlock(r,i),a=getParentElement(l);a.each(t=>{e.setStyle(l.dom,"direction",null);let r=getDirection(t);if(r===o?remove(l,"dir"):set(l,"dir",o),getDirection(l)!==o&&e.setStyle(l.dom,"direction",o),i){let t=children(l,"li[dir],li[style]");each(t,t=>{remove(t,"dir"),e.setStyle(t.dom,"direction",null)})}})})},setDir=(e,t)=>{e.selection.isEditable()&&(setDirOnElements(e.dom,e.selection.getSelectedBlocks(),t),e.nodeChanged())},register$1=e=>{e.addCommand("mceDirectionLTR",()=>{setDir(e,"ltr")}),e.addCommand("mceDirectionRTL",()=>{setDir(e,"rtl")})},getNodeChangeHandler=(e,t)=>o=>{let nodeChangeHandler=r=>{let i=n.fromDom(r.element);o.setActive(getDirection(i)===t),o.setEnabled(e.selection.isEditable())};return e.on("NodeChange",nodeChangeHandler),o.setEnabled(e.selection.isEditable()),()=>e.off("NodeChange",nodeChangeHandler)},register=e=>{e.ui.registry.addToggleButton("ltr",{tooltip:"Left to right",icon:"ltr",onAction:()=>e.execCommand("mceDirectionLTR"),onSetup:getNodeChangeHandler(e,"ltr")}),e.ui.registry.addToggleButton("rtl",{tooltip:"Right to left",icon:"rtl",onAction:()=>e.execCommand("mceDirectionRTL"),onSetup:getNodeChangeHandler(e,"rtl")})};e.add("directionality",e=>{register$1(e),register(e)})}();
+/**
+ * TinyMCE version 6.7.0 (2023-08-30)
+ */
+
+(function () {
+    'use strict';
+
+    var global = tinymce.util.Tools.resolve('tinymce.PluginManager');
+
+    const hasProto = (v, constructor, predicate) => {
+      var _a;
+      if (predicate(v, constructor.prototype)) {
+        return true;
+      } else {
+        return ((_a = v.constructor) === null || _a === void 0 ? void 0 : _a.name) === constructor.name;
+      }
+    };
+    const typeOf = x => {
+      const t = typeof x;
+      if (x === null) {
+        return 'null';
+      } else if (t === 'object' && Array.isArray(x)) {
+        return 'array';
+      } else if (t === 'object' && hasProto(x, String, (o, proto) => proto.isPrototypeOf(o))) {
+        return 'string';
+      } else {
+        return t;
+      }
+    };
+    const isType$1 = type => value => typeOf(value) === type;
+    const isSimpleType = type => value => typeof value === type;
+    const isString = isType$1('string');
+    const isBoolean = isSimpleType('boolean');
+    const isNullable = a => a === null || a === undefined;
+    const isNonNullable = a => !isNullable(a);
+    const isFunction = isSimpleType('function');
+    const isNumber = isSimpleType('number');
+
+    const compose1 = (fbc, fab) => a => fbc(fab(a));
+    const constant = value => {
+      return () => {
+        return value;
+      };
+    };
+    const never = constant(false);
+
+    class Optional {
+      constructor(tag, value) {
+        this.tag = tag;
+        this.value = value;
+      }
+      static some(value) {
+        return new Optional(true, value);
+      }
+      static none() {
+        return Optional.singletonNone;
+      }
+      fold(onNone, onSome) {
+        if (this.tag) {
+          return onSome(this.value);
+        } else {
+          return onNone();
+        }
+      }
+      isSome() {
+        return this.tag;
+      }
+      isNone() {
+        return !this.tag;
+      }
+      map(mapper) {
+        if (this.tag) {
+          return Optional.some(mapper(this.value));
+        } else {
+          return Optional.none();
+        }
+      }
+      bind(binder) {
+        if (this.tag) {
+          return binder(this.value);
+        } else {
+          return Optional.none();
+        }
+      }
+      exists(predicate) {
+        return this.tag && predicate(this.value);
+      }
+      forall(predicate) {
+        return !this.tag || predicate(this.value);
+      }
+      filter(predicate) {
+        if (!this.tag || predicate(this.value)) {
+          return this;
+        } else {
+          return Optional.none();
+        }
+      }
+      getOr(replacement) {
+        return this.tag ? this.value : replacement;
+      }
+      or(replacement) {
+        return this.tag ? this : replacement;
+      }
+      getOrThunk(thunk) {
+        return this.tag ? this.value : thunk();
+      }
+      orThunk(thunk) {
+        return this.tag ? this : thunk();
+      }
+      getOrDie(message) {
+        if (!this.tag) {
+          throw new Error(message !== null && message !== void 0 ? message : 'Called getOrDie on None');
+        } else {
+          return this.value;
+        }
+      }
+      static from(value) {
+        return isNonNullable(value) ? Optional.some(value) : Optional.none();
+      }
+      getOrNull() {
+        return this.tag ? this.value : null;
+      }
+      getOrUndefined() {
+        return this.value;
+      }
+      each(worker) {
+        if (this.tag) {
+          worker(this.value);
+        }
+      }
+      toArray() {
+        return this.tag ? [this.value] : [];
+      }
+      toString() {
+        return this.tag ? `some(${ this.value })` : 'none()';
+      }
+    }
+    Optional.singletonNone = new Optional(false);
+
+    const map = (xs, f) => {
+      const len = xs.length;
+      const r = new Array(len);
+      for (let i = 0; i < len; i++) {
+        const x = xs[i];
+        r[i] = f(x, i);
+      }
+      return r;
+    };
+    const each = (xs, f) => {
+      for (let i = 0, len = xs.length; i < len; i++) {
+        const x = xs[i];
+        f(x, i);
+      }
+    };
+    const filter = (xs, pred) => {
+      const r = [];
+      for (let i = 0, len = xs.length; i < len; i++) {
+        const x = xs[i];
+        if (pred(x, i)) {
+          r.push(x);
+        }
+      }
+      return r;
+    };
+
+    const DOCUMENT = 9;
+    const DOCUMENT_FRAGMENT = 11;
+    const ELEMENT = 1;
+    const TEXT = 3;
+
+    const fromHtml = (html, scope) => {
+      const doc = scope || document;
+      const div = doc.createElement('div');
+      div.innerHTML = html;
+      if (!div.hasChildNodes() || div.childNodes.length > 1) {
+        const message = 'HTML does not have a single root node';
+        console.error(message, html);
+        throw new Error(message);
+      }
+      return fromDom(div.childNodes[0]);
+    };
+    const fromTag = (tag, scope) => {
+      const doc = scope || document;
+      const node = doc.createElement(tag);
+      return fromDom(node);
+    };
+    const fromText = (text, scope) => {
+      const doc = scope || document;
+      const node = doc.createTextNode(text);
+      return fromDom(node);
+    };
+    const fromDom = node => {
+      if (node === null || node === undefined) {
+        throw new Error('Node cannot be null or undefined');
+      }
+      return { dom: node };
+    };
+    const fromPoint = (docElm, x, y) => Optional.from(docElm.dom.elementFromPoint(x, y)).map(fromDom);
+    const SugarElement = {
+      fromHtml,
+      fromTag,
+      fromText,
+      fromDom,
+      fromPoint
+    };
+
+    const is = (element, selector) => {
+      const dom = element.dom;
+      if (dom.nodeType !== ELEMENT) {
+        return false;
+      } else {
+        const elem = dom;
+        if (elem.matches !== undefined) {
+          return elem.matches(selector);
+        } else if (elem.msMatchesSelector !== undefined) {
+          return elem.msMatchesSelector(selector);
+        } else if (elem.webkitMatchesSelector !== undefined) {
+          return elem.webkitMatchesSelector(selector);
+        } else if (elem.mozMatchesSelector !== undefined) {
+          return elem.mozMatchesSelector(selector);
+        } else {
+          throw new Error('Browser lacks native selectors');
+        }
+      }
+    };
+
+    typeof window !== 'undefined' ? window : Function('return this;')();
+
+    const name = element => {
+      const r = element.dom.nodeName;
+      return r.toLowerCase();
+    };
+    const type = element => element.dom.nodeType;
+    const isType = t => element => type(element) === t;
+    const isElement = isType(ELEMENT);
+    const isText = isType(TEXT);
+    const isDocument = isType(DOCUMENT);
+    const isDocumentFragment = isType(DOCUMENT_FRAGMENT);
+    const isTag = tag => e => isElement(e) && name(e) === tag;
+
+    const owner = element => SugarElement.fromDom(element.dom.ownerDocument);
+    const documentOrOwner = dos => isDocument(dos) ? dos : owner(dos);
+    const parent = element => Optional.from(element.dom.parentNode).map(SugarElement.fromDom);
+    const children$2 = element => map(element.dom.childNodes, SugarElement.fromDom);
+
+    const rawSet = (dom, key, value) => {
+      if (isString(value) || isBoolean(value) || isNumber(value)) {
+        dom.setAttribute(key, value + '');
+      } else {
+        console.error('Invalid call to Attribute.set. Key ', key, ':: Value ', value, ':: Element ', dom);
+        throw new Error('Attribute value was not simple');
+      }
+    };
+    const set = (element, key, value) => {
+      rawSet(element.dom, key, value);
+    };
+    const remove = (element, key) => {
+      element.dom.removeAttribute(key);
+    };
+
+    const isShadowRoot = dos => isDocumentFragment(dos) && isNonNullable(dos.dom.host);
+    const supported = isFunction(Element.prototype.attachShadow) && isFunction(Node.prototype.getRootNode);
+    const getRootNode = supported ? e => SugarElement.fromDom(e.dom.getRootNode()) : documentOrOwner;
+    const getShadowRoot = e => {
+      const r = getRootNode(e);
+      return isShadowRoot(r) ? Optional.some(r) : Optional.none();
+    };
+    const getShadowHost = e => SugarElement.fromDom(e.dom.host);
+
+    const inBody = element => {
+      const dom = isText(element) ? element.dom.parentNode : element.dom;
+      if (dom === undefined || dom === null || dom.ownerDocument === null) {
+        return false;
+      }
+      const doc = dom.ownerDocument;
+      return getShadowRoot(SugarElement.fromDom(dom)).fold(() => doc.body.contains(dom), compose1(inBody, getShadowHost));
+    };
+
+    const ancestor$1 = (scope, predicate, isRoot) => {
+      let element = scope.dom;
+      const stop = isFunction(isRoot) ? isRoot : never;
+      while (element.parentNode) {
+        element = element.parentNode;
+        const el = SugarElement.fromDom(element);
+        if (predicate(el)) {
+          return Optional.some(el);
+        } else if (stop(el)) {
+          break;
+        }
+      }
+      return Optional.none();
+    };
+
+    const ancestor = (scope, selector, isRoot) => ancestor$1(scope, e => is(e, selector), isRoot);
+
+    const isSupported = dom => dom.style !== undefined && isFunction(dom.style.getPropertyValue);
+
+    const get = (element, property) => {
+      const dom = element.dom;
+      const styles = window.getComputedStyle(dom);
+      const r = styles.getPropertyValue(property);
+      return r === '' && !inBody(element) ? getUnsafeProperty(dom, property) : r;
+    };
+    const getUnsafeProperty = (dom, property) => isSupported(dom) ? dom.style.getPropertyValue(property) : '';
+
+    const getDirection = element => get(element, 'direction') === 'rtl' ? 'rtl' : 'ltr';
+
+    const children$1 = (scope, predicate) => filter(children$2(scope), predicate);
+
+    const children = (scope, selector) => children$1(scope, e => is(e, selector));
+
+    const getParentElement = element => parent(element).filter(isElement);
+    const getNormalizedBlock = (element, isListItem) => {
+      const normalizedElement = isListItem ? ancestor(element, 'ol,ul') : Optional.some(element);
+      return normalizedElement.getOr(element);
+    };
+    const isListItem = isTag('li');
+    const setDirOnElements = (dom, blocks, dir) => {
+      each(blocks, block => {
+        const blockElement = SugarElement.fromDom(block);
+        const isBlockElementListItem = isListItem(blockElement);
+        const normalizedBlock = getNormalizedBlock(blockElement, isBlockElementListItem);
+        const normalizedBlockParent = getParentElement(normalizedBlock);
+        normalizedBlockParent.each(parent => {
+          dom.setStyle(normalizedBlock.dom, 'direction', null);
+          const parentDirection = getDirection(parent);
+          if (parentDirection === dir) {
+            remove(normalizedBlock, 'dir');
+          } else {
+            set(normalizedBlock, 'dir', dir);
+          }
+          if (getDirection(normalizedBlock) !== dir) {
+            dom.setStyle(normalizedBlock.dom, 'direction', dir);
+          }
+          if (isBlockElementListItem) {
+            const listItems = children(normalizedBlock, 'li[dir],li[style]');
+            each(listItems, listItem => {
+              remove(listItem, 'dir');
+              dom.setStyle(listItem.dom, 'direction', null);
+            });
+          }
+        });
+      });
+    };
+    const setDir = (editor, dir) => {
+      if (editor.selection.isEditable()) {
+        setDirOnElements(editor.dom, editor.selection.getSelectedBlocks(), dir);
+        editor.nodeChanged();
+      }
+    };
+
+    const register$1 = editor => {
+      editor.addCommand('mceDirectionLTR', () => {
+        setDir(editor, 'ltr');
+      });
+      editor.addCommand('mceDirectionRTL', () => {
+        setDir(editor, 'rtl');
+      });
+    };
+
+    const getNodeChangeHandler = (editor, dir) => api => {
+      const nodeChangeHandler = e => {
+        const element = SugarElement.fromDom(e.element);
+        api.setActive(getDirection(element) === dir);
+        api.setEnabled(editor.selection.isEditable());
+      };
+      editor.on('NodeChange', nodeChangeHandler);
+      api.setEnabled(editor.selection.isEditable());
+      return () => editor.off('NodeChange', nodeChangeHandler);
+    };
+    const register = editor => {
+      editor.ui.registry.addToggleButton('ltr', {
+        tooltip: 'Left to right',
+        icon: 'ltr',
+        onAction: () => editor.execCommand('mceDirectionLTR'),
+        onSetup: getNodeChangeHandler(editor, 'ltr')
+      });
+      editor.ui.registry.addToggleButton('rtl', {
+        tooltip: 'Right to left',
+        icon: 'rtl',
+        onAction: () => editor.execCommand('mceDirectionRTL'),
+        onSetup: getNodeChangeHandler(editor, 'rtl')
+      });
+    };
+
+    var Plugin = () => {
+      global.add('directionality', editor => {
+        register$1(editor);
+        register(editor);
+      });
+    };
+
+    Plugin();
+
+})();

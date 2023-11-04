@@ -10,35 +10,34 @@ import { useEffect, useState } from 'react'
 
 
 export default function Admin() {
-    const [value, setValue] = useState('');
-    const [session, loading] = useSession({
-        required: false,
-        redirectTo: '/api/auth/signin?callbackUrl=/client',
-        queryConfig: {
-          staleTime: 60 * 1000 * 60 * 3, // 3 hours,
-          refetchInterval: 60 * 1000 * 5, // 5 minutes
-        }
-    })
-    
-    useEffect(() => {
-        console.log(value);
-    }, [value])
+	const [value, setValue] = useState('');
+	const [session, loading] = useSession({
+		required: false,
+		redirectTo: '/api/auth/signin?callbackUrl=/client',
+		queryConfig: {
+		  staleTime: 60 * 1000 * 60 * 3, // 3 hours,
+		  refetchInterval: 60 * 1000 * 5, // 5 minutes
+		}
+	})
+	
+	useEffect(() => {
+		console.log(value);
+	}, [value])
 
-    if (!AuthCheck(session, false)) {
-        return redirect('/');
-    }
+	if (!AuthCheck(session, false)) {
+		return redirect('/');
+	}
 
-    if (loading) {
-        return (
-            <Loading />
-        )
-    }
+	if (loading) {
+		return (
+			<Loading />
+		)
+	}
 
-
-    return (
-        <main className="styles.main">
-            <UserCard user={session?.user} pagetype={"Admin"} />
-            <CustomEditor value={value} onChange={setValue} />
-        </main>
-    )
+	return (
+		<main className="styles.main">
+			<UserCard user={session?.user} pagetype={"Admin"} />
+			<CustomEditor value={value} onChange={setValue} />
+		</main>
+	)
 }

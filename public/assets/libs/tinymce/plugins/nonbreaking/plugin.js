@@ -1,1 +1,123 @@
-!function(){"use strict";var e=tinymce.util.Tools.resolve("tinymce.PluginManager");let isSimpleType=e=>n=>typeof n===e,n=isSimpleType("boolean"),t=isSimpleType("number"),option=e=>n=>n.options.get(e),register$2=e=>{let a=e.options.register;a("nonbreaking_force_tab",{processor:e=>n(e)?{value:e?3:0,valid:!0}:t(e)?{value:e,valid:!0}:{valid:!1,message:"Must be a boolean or number."},default:!1}),a("nonbreaking_wrap",{processor:"boolean",default:!0})},a=option("nonbreaking_force_tab"),i=option("nonbreaking_wrap"),stringRepeat=(e,n)=>{let t="";for(let a=0;a<n;a++)t+=e;return t},isVisualCharsEnabled=e=>!!e.plugins.visualchars&&e.plugins.visualchars.isEnabled(),insertNbsp=(e,n)=>{let t=i(e),a=t||e.plugins.visualchars?`<span class="${isVisualCharsEnabled(e)?"mce-nbsp-wrap mce-nbsp":"mce-nbsp-wrap"}" contenteditable="false">${stringRepeat("&nbsp;",n)}</span>`:stringRepeat("&nbsp;",n);e.undoManager.transact(()=>e.insertContent(a))},register$1=e=>{e.addCommand("mceNonBreaking",()=>{insertNbsp(e,1)})};var o=tinymce.util.Tools.resolve("tinymce.util.VK");let setup=e=>{let n=a(e);n>0&&e.on("keydown",t=>{t.keyCode!==o.TAB||t.isDefaultPrevented()||t.shiftKey||(t.preventDefault(),t.stopImmediatePropagation(),insertNbsp(e,n))})},onSetupEditable=e=>n=>{let nodeChanged=()=>{n.setEnabled(e.selection.isEditable())};return e.on("NodeChange",nodeChanged),nodeChanged(),()=>{e.off("NodeChange",nodeChanged)}},register=e=>{let onAction=()=>e.execCommand("mceNonBreaking");e.ui.registry.addButton("nonbreaking",{icon:"non-breaking",tooltip:"Nonbreaking space",onAction,onSetup:onSetupEditable(e)}),e.ui.registry.addMenuItem("nonbreaking",{icon:"non-breaking",text:"Nonbreaking space",onAction,onSetup:onSetupEditable(e)})};e.add("nonbreaking",e=>{register$2(e),register$1(e),register(e),setup(e)})}();
+/**
+ * TinyMCE version 6.7.0 (2023-08-30)
+ */
+
+(function () {
+    'use strict';
+
+    var global$1 = tinymce.util.Tools.resolve('tinymce.PluginManager');
+
+    const isSimpleType = type => value => typeof value === type;
+    const isBoolean = isSimpleType('boolean');
+    const isNumber = isSimpleType('number');
+
+    const option = name => editor => editor.options.get(name);
+    const register$2 = editor => {
+      const registerOption = editor.options.register;
+      registerOption('nonbreaking_force_tab', {
+        processor: value => {
+          if (isBoolean(value)) {
+            return {
+              value: value ? 3 : 0,
+              valid: true
+            };
+          } else if (isNumber(value)) {
+            return {
+              value,
+              valid: true
+            };
+          } else {
+            return {
+              valid: false,
+              message: 'Must be a boolean or number.'
+            };
+          }
+        },
+        default: false
+      });
+      registerOption('nonbreaking_wrap', {
+        processor: 'boolean',
+        default: true
+      });
+    };
+    const getKeyboardSpaces = option('nonbreaking_force_tab');
+    const wrapNbsps = option('nonbreaking_wrap');
+
+    const stringRepeat = (string, repeats) => {
+      let str = '';
+      for (let index = 0; index < repeats; index++) {
+        str += string;
+      }
+      return str;
+    };
+    const isVisualCharsEnabled = editor => editor.plugins.visualchars ? editor.plugins.visualchars.isEnabled() : false;
+    const insertNbsp = (editor, times) => {
+      const classes = () => isVisualCharsEnabled(editor) ? 'mce-nbsp-wrap mce-nbsp' : 'mce-nbsp-wrap';
+      const nbspSpan = () => `<span class="${ classes() }" contenteditable="false">${ stringRepeat('&nbsp;', times) }</span>`;
+      const shouldWrap = wrapNbsps(editor);
+      const html = shouldWrap || editor.plugins.visualchars ? nbspSpan() : stringRepeat('&nbsp;', times);
+      editor.undoManager.transact(() => editor.insertContent(html));
+    };
+
+    const register$1 = editor => {
+      editor.addCommand('mceNonBreaking', () => {
+        insertNbsp(editor, 1);
+      });
+    };
+
+    var global = tinymce.util.Tools.resolve('tinymce.util.VK');
+
+    const setup = editor => {
+      const spaces = getKeyboardSpaces(editor);
+      if (spaces > 0) {
+        editor.on('keydown', e => {
+          if (e.keyCode === global.TAB && !e.isDefaultPrevented()) {
+            if (e.shiftKey) {
+              return;
+            }
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            insertNbsp(editor, spaces);
+          }
+        });
+      }
+    };
+
+    const onSetupEditable = editor => api => {
+      const nodeChanged = () => {
+        api.setEnabled(editor.selection.isEditable());
+      };
+      editor.on('NodeChange', nodeChanged);
+      nodeChanged();
+      return () => {
+        editor.off('NodeChange', nodeChanged);
+      };
+    };
+    const register = editor => {
+      const onAction = () => editor.execCommand('mceNonBreaking');
+      editor.ui.registry.addButton('nonbreaking', {
+        icon: 'non-breaking',
+        tooltip: 'Nonbreaking space',
+        onAction,
+        onSetup: onSetupEditable(editor)
+      });
+      editor.ui.registry.addMenuItem('nonbreaking', {
+        icon: 'non-breaking',
+        text: 'Nonbreaking space',
+        onAction,
+        onSetup: onSetupEditable(editor)
+      });
+    };
+
+    var Plugin = () => {
+      global$1.add('nonbreaking', editor => {
+        register$2(editor);
+        register$1(editor);
+        register(editor);
+        setup(editor);
+      });
+    };
+
+    Plugin();
+
+})();

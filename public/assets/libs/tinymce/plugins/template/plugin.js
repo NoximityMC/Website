@@ -1,1 +1,567 @@
-!function(){"use strict";var e=tinymce.util.Tools.resolve("tinymce.PluginManager");let hasProto=(e,t,a)=>{var l;return!!a(e,t.prototype)||(null===(l=e.constructor)||void 0===l?void 0:l.name)===t.name},typeOf=e=>{let t=typeof e;return null===e?"null":"object"===t&&Array.isArray(e)?"array":"object"===t&&hasProto(e,String,(e,t)=>t.isPrototypeOf(e))?"string":t},isType=e=>t=>typeOf(t)===e,t=isType("string"),a=isType("object"),l=isType("array"),isNullable=e=>null==e,isNonNullable=e=>!isNullable(e),isFunction=e=>"function"==typeof e,isArrayOf=(e,t)=>{if(l(e)){for(let a=0,l=e.length;a<l;++a)if(!t(e[a]))return!1;return!0}return!1},never=()=>!1,escape=e=>e.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");var n=tinymce.util.Tools.resolve("tinymce.util.Tools");let option=e=>t=>t.options.get(e),register$2=e=>{let l=e.options.register;l("template_cdate_classes",{processor:"string",default:"cdate"}),l("template_mdate_classes",{processor:"string",default:"mdate"}),l("template_selected_content_classes",{processor:"string",default:"selcontent"}),l("template_preview_replace_values",{processor:"object"}),l("template_replace_values",{processor:"object"}),l("templates",{processor:e=>t(e)||isArrayOf(e,a)||isFunction(e),default:[]}),l("template_cdate_format",{processor:"string",default:e.translate("%Y-%m-%d")}),l("template_mdate_format",{processor:"string",default:e.translate("%Y-%m-%d")})},r=option("template_cdate_classes"),o=option("template_mdate_classes"),s=option("template_selected_content_classes"),i=option("template_preview_replace_values"),p=option("template_replace_values"),c=option("templates"),u=option("template_cdate_format"),d=option("template_mdate_format"),m=option("content_style"),g=option("content_css_cors"),h=option("body_class"),addZeros=(e,t)=>{if((e=""+e).length<t)for(let a=0;a<t-e.length;a++)e="0"+e;return e},getDateTime=(e,t,a=new Date)=>t=(t=(t=(t=(t=(t=(t=(t=(t=(t=(t=(t=(t=(t=(t=(t=t.replace("%D","%m/%d/%Y")).replace("%r","%I:%M:%S %p")).replace("%Y",""+a.getFullYear())).replace("%y",""+a.getYear())).replace("%m",addZeros(a.getMonth()+1,2))).replace("%d",addZeros(a.getDate(),2))).replace("%H",""+addZeros(a.getHours(),2))).replace("%M",""+addZeros(a.getMinutes(),2))).replace("%S",""+addZeros(a.getSeconds(),2))).replace("%I",""+((a.getHours()+11)%12+1))).replace("%p",12>a.getHours()?"AM":"PM")).replace("%B",""+e.translate("January February March April May June July August September October November December".split(" ")[a.getMonth()]))).replace("%b",""+e.translate("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" ")[a.getMonth()]))).replace("%A",""+e.translate("Sunday Monday Tuesday Wednesday Thursday Friday Saturday Sunday".split(" ")[a.getDay()]))).replace("%a",""+e.translate("Sun Mon Tue Wed Thu Fri Sat Sun".split(" ")[a.getDay()]))).replace("%%","%");let Optional=class Optional{constructor(e,t){this.tag=e,this.value=t}static some(e){return new Optional(!0,e)}static none(){return Optional.singletonNone}fold(e,t){return this.tag?t(this.value):e()}isSome(){return this.tag}isNone(){return!this.tag}map(e){return this.tag?Optional.some(e(this.value)):Optional.none()}bind(e){return this.tag?e(this.value):Optional.none()}exists(e){return this.tag&&e(this.value)}forall(e){return!this.tag||e(this.value)}filter(e){return!this.tag||e(this.value)?this:Optional.none()}getOr(e){return this.tag?this.value:e}or(e){return this.tag?this:e}getOrThunk(e){return this.tag?this.value:e()}orThunk(e){return this.tag?this:e()}getOrDie(e){if(this.tag)return this.value;throw Error(null!=e?e:"Called getOrDie on None")}static from(e){return isNonNullable(e)?Optional.some(e):Optional.none()}getOrNull(){return this.tag?this.value:null}getOrUndefined(){return this.value}each(e){this.tag&&e(this.value)}toArray(){return this.tag?[this.value]:[]}toString(){return this.tag?`some(${this.value})`:"none()"}};Optional.singletonNone=new Optional(!1);let exists=(e,t)=>{for(let a=0,l=e.length;a<l;a++){let l=e[a];if(t(l,a))return!0}return!1},map=(e,t)=>{let a=e.length,l=Array(a);for(let n=0;n<a;n++){let a=e[n];l[n]=t(a,n)}return l},findUntil=(e,t,a)=>{for(let l=0,n=e.length;l<n;l++){let n=e[l];if(t(n,l))return Optional.some(n);if(a(n,l))break}return Optional.none()},find=(e,t)=>findUntil(e,t,never),y=Object.hasOwnProperty,get=(e,t)=>has(e,t)?Optional.from(e[t]):Optional.none(),has=(e,t)=>y.call(e,t);var f=tinymce.util.Tools.resolve("tinymce.html.Serializer");let v={'"':"&quot;","<":"&lt;",">":"&gt;","&":"&amp;","'":"&#039;"},htmlEscape=e=>e.replace(/["'<>&]/g,e=>get(v,e).getOr(e)),hasAnyClasses=(e,t,a)=>exists(a.split(/\s+/),a=>e.hasClass(t,a)),parseAndSerialize=(e,t)=>f({validate:!0},e.schema).serialize(e.parser.parse(t,{insert:!0})),createTemplateList=(e,a)=>()=>{let l=c(e);isFunction(l)?l(a):t(l)?fetch(l).then(e=>{e.ok&&e.json().then(a)}):a(l)},replaceTemplateValues=(e,t)=>(n.each(t,(t,a)=>{isFunction(t)&&(t=t(a)),e=e.replace(RegExp("\\{\\$"+escape(a)+"\\}","g"),t)}),e),replaceVals=(e,t)=>{let a=e.dom,l=p(e);n.each(a.select("*",t),e=>{n.each(l,(t,l)=>{a.hasClass(e,l)&&isFunction(t)&&t(e)})})},insertTemplate=(e,t,a)=>{let l=e.dom,i=e.selection.getContent();a=replaceTemplateValues(a,p(e));let c=l.create("div",{},parseAndSerialize(e,a)),m=l.select(".mceTmpl",c);m&&m.length>0&&(c=l.create("div")).appendChild(m[0].cloneNode(!0)),n.each(l.select("*",c),t=>{hasAnyClasses(l,t,r(e))&&(t.innerHTML=getDateTime(e,u(e))),hasAnyClasses(l,t,o(e))&&(t.innerHTML=getDateTime(e,d(e))),hasAnyClasses(l,t,s(e))&&(t.innerHTML=i)}),replaceVals(e,c),e.execCommand("mceInsertContent",!1,c.innerHTML),e.addVisual()};var b=tinymce.util.Tools.resolve("tinymce.Env");let getPreviewContent=(e,t)=>{var a;let l=parseAndSerialize(e,t);if(-1===t.indexOf("<html>")){let t="",r=null!==(a=m(e))&&void 0!==a?a:"",o=g(e)?' crossorigin="anonymous"':"";n.each(e.contentCSS,a=>{t+='<link type="text/css" rel="stylesheet" href="'+e.documentBaseURI.toAbsolute(a)+'"'+o+">"}),r&&(t+='<style type="text/css">'+r+"</style>");let s=h(e),i=e.dom.encode,p=b.os.isMacOS()||b.os.isiOS()?"e.metaKey":"e.ctrlKey && !e.altKey",c=e.getBody().dir,u=c?' dir="'+i(c)+'"':"";l='<!DOCTYPE html><html><head><base href="'+i(e.documentBaseURI.getURI())+'">'+t+'<script>document.addEventListener && document.addEventListener("click", function(e) {for (var elm = e.target; elm; elm = elm.parentNode) {if (elm.nodeName === "A" && !('+p+')) {e.preventDefault();}}}, false);</script> </head><body class="'+i(s)+'"'+u+">"+l+"</body></html>"}return replaceTemplateValues(l,i(e))},open=(e,t)=>{let createSelectBoxItems=e=>map(e,e=>({text:e.text,value:e.text})),findTemplate=(e,t)=>find(e,e=>e.text===t),loadFailedAlert=t=>{e.windowManager.alert("Could not load the specified template.",()=>t.focus("template"))},getTemplateContent=e=>e.value.url.fold(()=>Promise.resolve(e.value.content.getOr("")),e=>fetch(e).then(e=>e.ok?e.text():Promise.reject())),onChange=(e,t)=>(a,l)=>{if("template"===l.name){let l=a.getData().template;findTemplate(e,l).each(e=>{a.block("Loading..."),getTemplateContent(e).then(l=>{t(a,e,l)}).catch(()=>{t(a,e,""),a.setEnabled("save",!1),loadFailedAlert(a)})})}},onSubmit=t=>a=>{let l=a.getData();findTemplate(t,l.template).each(t=>{getTemplateContent(t).then(t=>{e.execCommand("mceInsertTemplate",!1,t),a.close()}).catch(()=>{a.setEnabled("save",!1),loadFailedAlert(a)})})},a=(()=>{if(!t||0===t.length){let t=e.translate("No templates defined.");return e.notificationManager.open({text:t,type:"info"}),Optional.none()}return Optional.from(n.map(t,(e,t)=>({selected:0===t,text:e.title,value:{url:void 0!==e.url?Optional.from(e.url):Optional.none(),content:void 0!==e.url?Optional.none():Optional.from(e.content),description:e.description}})))})();a.each(t=>{let a=createSelectBoxItems(t),buildDialogSpec=(e,a)=>({title:"Insert Template",size:"large",body:{type:"panel",items:e},initialData:a,buttons:[{type:"cancel",name:"cancel",text:"Cancel"},{type:"submit",name:"save",text:"Save",primary:!0}],onSubmit:onSubmit(t),onChange:onChange(t,updateDialog)}),updateDialog=(t,l,n)=>{let r=getPreviewContent(e,n),o=[{type:"listbox",name:"template",label:"Templates",items:a},{type:"htmlpanel",html:`<p aria-live="polite">${htmlEscape(l.value.description)}</p>`},{label:"Preview",type:"iframe",name:"preview",sandboxed:!1,transparent:!1}],s={template:l.text,preview:r};t.unblock(),t.redial(buildDialogSpec(o,s)),t.focus("template")},l=e.windowManager.open(buildDialogSpec([],{template:"",preview:""}));l.block("Loading..."),getTemplateContent(t[0]).then(e=>{updateDialog(l,t[0],e)}).catch(()=>{updateDialog(l,t[0],""),l.setEnabled("save",!1),loadFailedAlert(l)})})},showDialog=e=>t=>{open(e,t)},register$1=e=>{e.addCommand("mceInsertTemplate",function(e,...t){return(...a)=>{let l=t.concat(a);return e.apply(null,l)}}(insertTemplate,e)),e.addCommand("mceTemplate",createTemplateList(e,showDialog(e)))},setup=e=>{e.on("PreProcess",t=>{let a=e.dom,l=d(e);n.each(a.select("div",t.node),t=>{a.hasClass(t,"mceTmpl")&&(n.each(a.select("*",t),t=>{hasAnyClasses(a,t,o(e))&&(t.innerHTML=getDateTime(e,l))}),replaceVals(e,t))})})},onSetupEditable=e=>t=>{let nodeChanged=()=>{t.setEnabled(e.selection.isEditable())};return e.on("NodeChange",nodeChanged),nodeChanged(),()=>{e.off("NodeChange",nodeChanged)}},register=e=>{let onAction=()=>e.execCommand("mceTemplate");e.ui.registry.addButton("template",{icon:"template",tooltip:"Insert template",onSetup:onSetupEditable(e),onAction}),e.ui.registry.addMenuItem("template",{icon:"template",text:"Insert template...",onSetup:onSetupEditable(e),onAction})};e.add("template",e=>{register$2(e),register(e),register$1(e),setup(e)})}();
+/**
+ * TinyMCE version 6.7.0 (2023-08-30)
+ */
+
+(function () {
+    'use strict';
+
+    var global$3 = tinymce.util.Tools.resolve('tinymce.PluginManager');
+
+    const hasProto = (v, constructor, predicate) => {
+      var _a;
+      if (predicate(v, constructor.prototype)) {
+        return true;
+      } else {
+        return ((_a = v.constructor) === null || _a === void 0 ? void 0 : _a.name) === constructor.name;
+      }
+    };
+    const typeOf = x => {
+      const t = typeof x;
+      if (x === null) {
+        return 'null';
+      } else if (t === 'object' && Array.isArray(x)) {
+        return 'array';
+      } else if (t === 'object' && hasProto(x, String, (o, proto) => proto.isPrototypeOf(o))) {
+        return 'string';
+      } else {
+        return t;
+      }
+    };
+    const isType = type => value => typeOf(value) === type;
+    const isSimpleType = type => value => typeof value === type;
+    const isString = isType('string');
+    const isObject = isType('object');
+    const isArray = isType('array');
+    const isNullable = a => a === null || a === undefined;
+    const isNonNullable = a => !isNullable(a);
+    const isFunction = isSimpleType('function');
+    const isArrayOf = (value, pred) => {
+      if (isArray(value)) {
+        for (let i = 0, len = value.length; i < len; ++i) {
+          if (!pred(value[i])) {
+            return false;
+          }
+        }
+        return true;
+      }
+      return false;
+    };
+
+    const constant = value => {
+      return () => {
+        return value;
+      };
+    };
+    function curry(fn, ...initialArgs) {
+      return (...restArgs) => {
+        const all = initialArgs.concat(restArgs);
+        return fn.apply(null, all);
+      };
+    }
+    const never = constant(false);
+
+    const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    var global$2 = tinymce.util.Tools.resolve('tinymce.util.Tools');
+
+    const option = name => editor => editor.options.get(name);
+    const register$2 = editor => {
+      const registerOption = editor.options.register;
+      registerOption('template_cdate_classes', {
+        processor: 'string',
+        default: 'cdate'
+      });
+      registerOption('template_mdate_classes', {
+        processor: 'string',
+        default: 'mdate'
+      });
+      registerOption('template_selected_content_classes', {
+        processor: 'string',
+        default: 'selcontent'
+      });
+      registerOption('template_preview_replace_values', { processor: 'object' });
+      registerOption('template_replace_values', { processor: 'object' });
+      registerOption('templates', {
+        processor: value => isString(value) || isArrayOf(value, isObject) || isFunction(value),
+        default: []
+      });
+      registerOption('template_cdate_format', {
+        processor: 'string',
+        default: editor.translate('%Y-%m-%d')
+      });
+      registerOption('template_mdate_format', {
+        processor: 'string',
+        default: editor.translate('%Y-%m-%d')
+      });
+    };
+    const getCreationDateClasses = option('template_cdate_classes');
+    const getModificationDateClasses = option('template_mdate_classes');
+    const getSelectedContentClasses = option('template_selected_content_classes');
+    const getPreviewReplaceValues = option('template_preview_replace_values');
+    const getTemplateReplaceValues = option('template_replace_values');
+    const getTemplates = option('templates');
+    const getCdateFormat = option('template_cdate_format');
+    const getMdateFormat = option('template_mdate_format');
+    const getContentStyle = option('content_style');
+    const shouldUseContentCssCors = option('content_css_cors');
+    const getBodyClass = option('body_class');
+
+    const addZeros = (value, len) => {
+      value = '' + value;
+      if (value.length < len) {
+        for (let i = 0; i < len - value.length; i++) {
+          value = '0' + value;
+        }
+      }
+      return value;
+    };
+    const getDateTime = (editor, fmt, date = new Date()) => {
+      const daysShort = 'Sun Mon Tue Wed Thu Fri Sat Sun'.split(' ');
+      const daysLong = 'Sunday Monday Tuesday Wednesday Thursday Friday Saturday Sunday'.split(' ');
+      const monthsShort = 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' ');
+      const monthsLong = 'January February March April May June July August September October November December'.split(' ');
+      fmt = fmt.replace('%D', '%m/%d/%Y');
+      fmt = fmt.replace('%r', '%I:%M:%S %p');
+      fmt = fmt.replace('%Y', '' + date.getFullYear());
+      fmt = fmt.replace('%y', '' + date.getYear());
+      fmt = fmt.replace('%m', addZeros(date.getMonth() + 1, 2));
+      fmt = fmt.replace('%d', addZeros(date.getDate(), 2));
+      fmt = fmt.replace('%H', '' + addZeros(date.getHours(), 2));
+      fmt = fmt.replace('%M', '' + addZeros(date.getMinutes(), 2));
+      fmt = fmt.replace('%S', '' + addZeros(date.getSeconds(), 2));
+      fmt = fmt.replace('%I', '' + ((date.getHours() + 11) % 12 + 1));
+      fmt = fmt.replace('%p', '' + (date.getHours() < 12 ? 'AM' : 'PM'));
+      fmt = fmt.replace('%B', '' + editor.translate(monthsLong[date.getMonth()]));
+      fmt = fmt.replace('%b', '' + editor.translate(monthsShort[date.getMonth()]));
+      fmt = fmt.replace('%A', '' + editor.translate(daysLong[date.getDay()]));
+      fmt = fmt.replace('%a', '' + editor.translate(daysShort[date.getDay()]));
+      fmt = fmt.replace('%%', '%');
+      return fmt;
+    };
+
+    class Optional {
+      constructor(tag, value) {
+        this.tag = tag;
+        this.value = value;
+      }
+      static some(value) {
+        return new Optional(true, value);
+      }
+      static none() {
+        return Optional.singletonNone;
+      }
+      fold(onNone, onSome) {
+        if (this.tag) {
+          return onSome(this.value);
+        } else {
+          return onNone();
+        }
+      }
+      isSome() {
+        return this.tag;
+      }
+      isNone() {
+        return !this.tag;
+      }
+      map(mapper) {
+        if (this.tag) {
+          return Optional.some(mapper(this.value));
+        } else {
+          return Optional.none();
+        }
+      }
+      bind(binder) {
+        if (this.tag) {
+          return binder(this.value);
+        } else {
+          return Optional.none();
+        }
+      }
+      exists(predicate) {
+        return this.tag && predicate(this.value);
+      }
+      forall(predicate) {
+        return !this.tag || predicate(this.value);
+      }
+      filter(predicate) {
+        if (!this.tag || predicate(this.value)) {
+          return this;
+        } else {
+          return Optional.none();
+        }
+      }
+      getOr(replacement) {
+        return this.tag ? this.value : replacement;
+      }
+      or(replacement) {
+        return this.tag ? this : replacement;
+      }
+      getOrThunk(thunk) {
+        return this.tag ? this.value : thunk();
+      }
+      orThunk(thunk) {
+        return this.tag ? this : thunk();
+      }
+      getOrDie(message) {
+        if (!this.tag) {
+          throw new Error(message !== null && message !== void 0 ? message : 'Called getOrDie on None');
+        } else {
+          return this.value;
+        }
+      }
+      static from(value) {
+        return isNonNullable(value) ? Optional.some(value) : Optional.none();
+      }
+      getOrNull() {
+        return this.tag ? this.value : null;
+      }
+      getOrUndefined() {
+        return this.value;
+      }
+      each(worker) {
+        if (this.tag) {
+          worker(this.value);
+        }
+      }
+      toArray() {
+        return this.tag ? [this.value] : [];
+      }
+      toString() {
+        return this.tag ? `some(${ this.value })` : 'none()';
+      }
+    }
+    Optional.singletonNone = new Optional(false);
+
+    const exists = (xs, pred) => {
+      for (let i = 0, len = xs.length; i < len; i++) {
+        const x = xs[i];
+        if (pred(x, i)) {
+          return true;
+        }
+      }
+      return false;
+    };
+    const map = (xs, f) => {
+      const len = xs.length;
+      const r = new Array(len);
+      for (let i = 0; i < len; i++) {
+        const x = xs[i];
+        r[i] = f(x, i);
+      }
+      return r;
+    };
+    const findUntil = (xs, pred, until) => {
+      for (let i = 0, len = xs.length; i < len; i++) {
+        const x = xs[i];
+        if (pred(x, i)) {
+          return Optional.some(x);
+        } else if (until(x, i)) {
+          break;
+        }
+      }
+      return Optional.none();
+    };
+    const find = (xs, pred) => {
+      return findUntil(xs, pred, never);
+    };
+
+    const hasOwnProperty = Object.hasOwnProperty;
+    const get = (obj, key) => {
+      return has(obj, key) ? Optional.from(obj[key]) : Optional.none();
+    };
+    const has = (obj, key) => hasOwnProperty.call(obj, key);
+
+    var global$1 = tinymce.util.Tools.resolve('tinymce.html.Serializer');
+
+    const entitiesAttr = {
+      '"': '&quot;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '&': '&amp;',
+      '\'': '&#039;'
+    };
+    const htmlEscape = html => html.replace(/["'<>&]/g, match => get(entitiesAttr, match).getOr(match));
+    const hasAnyClasses = (dom, n, classes) => exists(classes.split(/\s+/), c => dom.hasClass(n, c));
+    const parseAndSerialize = (editor, html) => global$1({ validate: true }, editor.schema).serialize(editor.parser.parse(html, { insert: true }));
+
+    const createTemplateList = (editor, callback) => {
+      return () => {
+        const templateList = getTemplates(editor);
+        if (isFunction(templateList)) {
+          templateList(callback);
+        } else if (isString(templateList)) {
+          fetch(templateList).then(res => {
+            if (res.ok) {
+              res.json().then(callback);
+            }
+          });
+        } else {
+          callback(templateList);
+        }
+      };
+    };
+    const replaceTemplateValues = (html, templateValues) => {
+      global$2.each(templateValues, (v, k) => {
+        if (isFunction(v)) {
+          v = v(k);
+        }
+        html = html.replace(new RegExp('\\{\\$' + escape(k) + '\\}', 'g'), v);
+      });
+      return html;
+    };
+    const replaceVals = (editor, scope) => {
+      const dom = editor.dom, vl = getTemplateReplaceValues(editor);
+      global$2.each(dom.select('*', scope), e => {
+        global$2.each(vl, (v, k) => {
+          if (dom.hasClass(e, k)) {
+            if (isFunction(v)) {
+              v(e);
+            }
+          }
+        });
+      });
+    };
+    const insertTemplate = (editor, _ui, html) => {
+      const dom = editor.dom;
+      const sel = editor.selection.getContent();
+      html = replaceTemplateValues(html, getTemplateReplaceValues(editor));
+      let el = dom.create('div', {}, parseAndSerialize(editor, html));
+      const n = dom.select('.mceTmpl', el);
+      if (n && n.length > 0) {
+        el = dom.create('div');
+        el.appendChild(n[0].cloneNode(true));
+      }
+      global$2.each(dom.select('*', el), n => {
+        if (hasAnyClasses(dom, n, getCreationDateClasses(editor))) {
+          n.innerHTML = getDateTime(editor, getCdateFormat(editor));
+        }
+        if (hasAnyClasses(dom, n, getModificationDateClasses(editor))) {
+          n.innerHTML = getDateTime(editor, getMdateFormat(editor));
+        }
+        if (hasAnyClasses(dom, n, getSelectedContentClasses(editor))) {
+          n.innerHTML = sel;
+        }
+      });
+      replaceVals(editor, el);
+      editor.execCommand('mceInsertContent', false, el.innerHTML);
+      editor.addVisual();
+    };
+
+    var global = tinymce.util.Tools.resolve('tinymce.Env');
+
+    const getPreviewContent = (editor, html) => {
+      var _a;
+      let previewHtml = parseAndSerialize(editor, html);
+      if (html.indexOf('<html>') === -1) {
+        let contentCssEntries = '';
+        const contentStyle = (_a = getContentStyle(editor)) !== null && _a !== void 0 ? _a : '';
+        const cors = shouldUseContentCssCors(editor) ? ' crossorigin="anonymous"' : '';
+        global$2.each(editor.contentCSS, url => {
+          contentCssEntries += '<link type="text/css" rel="stylesheet" href="' + editor.documentBaseURI.toAbsolute(url) + '"' + cors + '>';
+        });
+        if (contentStyle) {
+          contentCssEntries += '<style type="text/css">' + contentStyle + '</style>';
+        }
+        const bodyClass = getBodyClass(editor);
+        const encode = editor.dom.encode;
+        const isMetaKeyPressed = global.os.isMacOS() || global.os.isiOS() ? 'e.metaKey' : 'e.ctrlKey && !e.altKey';
+        const preventClicksOnLinksScript = '<script>' + 'document.addEventListener && document.addEventListener("click", function(e) {' + 'for (var elm = e.target; elm; elm = elm.parentNode) {' + 'if (elm.nodeName === "A" && !(' + isMetaKeyPressed + ')) {' + 'e.preventDefault();' + '}' + '}' + '}, false);' + '</script> ';
+        const directionality = editor.getBody().dir;
+        const dirAttr = directionality ? ' dir="' + encode(directionality) + '"' : '';
+        previewHtml = '<!DOCTYPE html>' + '<html>' + '<head>' + '<base href="' + encode(editor.documentBaseURI.getURI()) + '">' + contentCssEntries + preventClicksOnLinksScript + '</head>' + '<body class="' + encode(bodyClass) + '"' + dirAttr + '>' + previewHtml + '</body>' + '</html>';
+      }
+      return replaceTemplateValues(previewHtml, getPreviewReplaceValues(editor));
+    };
+    const open = (editor, templateList) => {
+      const createTemplates = () => {
+        if (!templateList || templateList.length === 0) {
+          const message = editor.translate('No templates defined.');
+          editor.notificationManager.open({
+            text: message,
+            type: 'info'
+          });
+          return Optional.none();
+        }
+        return Optional.from(global$2.map(templateList, (template, index) => {
+          const isUrlTemplate = t => t.url !== undefined;
+          return {
+            selected: index === 0,
+            text: template.title,
+            value: {
+              url: isUrlTemplate(template) ? Optional.from(template.url) : Optional.none(),
+              content: !isUrlTemplate(template) ? Optional.from(template.content) : Optional.none(),
+              description: template.description
+            }
+          };
+        }));
+      };
+      const createSelectBoxItems = templates => map(templates, t => ({
+        text: t.text,
+        value: t.text
+      }));
+      const findTemplate = (templates, templateTitle) => find(templates, t => t.text === templateTitle);
+      const loadFailedAlert = api => {
+        editor.windowManager.alert('Could not load the specified template.', () => api.focus('template'));
+      };
+      const getTemplateContent = t => t.value.url.fold(() => Promise.resolve(t.value.content.getOr('')), url => fetch(url).then(res => res.ok ? res.text() : Promise.reject()));
+      const onChange = (templates, updateDialog) => (api, change) => {
+        if (change.name === 'template') {
+          const newTemplateTitle = api.getData().template;
+          findTemplate(templates, newTemplateTitle).each(t => {
+            api.block('Loading...');
+            getTemplateContent(t).then(previewHtml => {
+              updateDialog(api, t, previewHtml);
+            }).catch(() => {
+              updateDialog(api, t, '');
+              api.setEnabled('save', false);
+              loadFailedAlert(api);
+            });
+          });
+        }
+      };
+      const onSubmit = templates => api => {
+        const data = api.getData();
+        findTemplate(templates, data.template).each(t => {
+          getTemplateContent(t).then(previewHtml => {
+            editor.execCommand('mceInsertTemplate', false, previewHtml);
+            api.close();
+          }).catch(() => {
+            api.setEnabled('save', false);
+            loadFailedAlert(api);
+          });
+        });
+      };
+      const openDialog = templates => {
+        const selectBoxItems = createSelectBoxItems(templates);
+        const buildDialogSpec = (bodyItems, initialData) => ({
+          title: 'Insert Template',
+          size: 'large',
+          body: {
+            type: 'panel',
+            items: bodyItems
+          },
+          initialData,
+          buttons: [
+            {
+              type: 'cancel',
+              name: 'cancel',
+              text: 'Cancel'
+            },
+            {
+              type: 'submit',
+              name: 'save',
+              text: 'Save',
+              primary: true
+            }
+          ],
+          onSubmit: onSubmit(templates),
+          onChange: onChange(templates, updateDialog)
+        });
+        const updateDialog = (dialogApi, template, previewHtml) => {
+          const content = getPreviewContent(editor, previewHtml);
+          const bodyItems = [
+            {
+              type: 'listbox',
+              name: 'template',
+              label: 'Templates',
+              items: selectBoxItems
+            },
+            {
+              type: 'htmlpanel',
+              html: `<p aria-live="polite">${ htmlEscape(template.value.description) }</p>`
+            },
+            {
+              label: 'Preview',
+              type: 'iframe',
+              name: 'preview',
+              sandboxed: false,
+              transparent: false
+            }
+          ];
+          const initialData = {
+            template: template.text,
+            preview: content
+          };
+          dialogApi.unblock();
+          dialogApi.redial(buildDialogSpec(bodyItems, initialData));
+          dialogApi.focus('template');
+        };
+        const dialogApi = editor.windowManager.open(buildDialogSpec([], {
+          template: '',
+          preview: ''
+        }));
+        dialogApi.block('Loading...');
+        getTemplateContent(templates[0]).then(previewHtml => {
+          updateDialog(dialogApi, templates[0], previewHtml);
+        }).catch(() => {
+          updateDialog(dialogApi, templates[0], '');
+          dialogApi.setEnabled('save', false);
+          loadFailedAlert(dialogApi);
+        });
+      };
+      const optTemplates = createTemplates();
+      optTemplates.each(openDialog);
+    };
+
+    const showDialog = editor => templates => {
+      open(editor, templates);
+    };
+    const register$1 = editor => {
+      editor.addCommand('mceInsertTemplate', curry(insertTemplate, editor));
+      editor.addCommand('mceTemplate', createTemplateList(editor, showDialog(editor)));
+    };
+
+    const setup = editor => {
+      editor.on('PreProcess', o => {
+        const dom = editor.dom, dateFormat = getMdateFormat(editor);
+        global$2.each(dom.select('div', o.node), e => {
+          if (dom.hasClass(e, 'mceTmpl')) {
+            global$2.each(dom.select('*', e), e => {
+              if (hasAnyClasses(dom, e, getModificationDateClasses(editor))) {
+                e.innerHTML = getDateTime(editor, dateFormat);
+              }
+            });
+            replaceVals(editor, e);
+          }
+        });
+      });
+    };
+
+    const onSetupEditable = editor => api => {
+      const nodeChanged = () => {
+        api.setEnabled(editor.selection.isEditable());
+      };
+      editor.on('NodeChange', nodeChanged);
+      nodeChanged();
+      return () => {
+        editor.off('NodeChange', nodeChanged);
+      };
+    };
+    const register = editor => {
+      const onAction = () => editor.execCommand('mceTemplate');
+      editor.ui.registry.addButton('template', {
+        icon: 'template',
+        tooltip: 'Insert template',
+        onSetup: onSetupEditable(editor),
+        onAction
+      });
+      editor.ui.registry.addMenuItem('template', {
+        icon: 'template',
+        text: 'Insert template...',
+        onSetup: onSetupEditable(editor),
+        onAction
+      });
+    };
+
+    var Plugin = () => {
+      global$3.add('template', editor => {
+        register$2(editor);
+        register(editor);
+        register$1(editor);
+        setup(editor);
+      });
+    };
+
+    Plugin();
+
+})();

@@ -6,28 +6,28 @@ import { Footer } from "./Footer";
 import Navbar from "./navbar"
 
 export const MainComponent = ({children}: {children: React.ReactNode}) => {
-    const [session, loading] = useSession({
-        required: false,
-        redirectTo: '/api/auth/signin?callbackUrl=/client',
-        queryConfig: {
-          staleTime: 60 * 1000 * 60 * 3, // 3 hours,
-          refetchInterval: 60 * 1000 * 5, // 5 minutes
-        }
-    })
+	const [session, loading] = useSession({
+		required: false,
+		redirectTo: '/api/auth/signin?callbackUrl=/client',
+		queryConfig: {
+		  staleTime: 60 * 1000 * 60 * 3, // 3 hours,
+		  refetchInterval: 60 * 1000 * 5, // 5 minutes
+		}
+	})
 
-    if (loading) {
-        return (
-            <Loading />
-        )
-    }
-    
-    return (
-        <>
-            <Navbar session={session} />
-            <main>
-                {children}
-            </main>
-            <Footer />
-        </>
-    )
+	if (loading) {
+		return (
+			<Loading />
+		)
+	}
+	
+	return (
+		<>
+			<Navbar session={session} />
+			<main>
+				{children}
+			</main>
+			<Footer />
+		</>
+	)
 }

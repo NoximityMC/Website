@@ -9,26 +9,26 @@ import { MainComponent } from './components/MainComponent'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Noximity', 
-  description: 'Official Noximity website',
+  	title: 'Noximity', 
+  	description: 'Official Noximity website',
 }
 
 export default function RootLayout({
-  children,
+  	children,
 }: {
-  children: React.ReactNode
+  	children: React.ReactNode
 }) {
-  return (
-    <html lang="en" className='dark'>
-      <body className={inter.className}>
-        <Theme appearance='dark'>
-          <AuthProvider>
-            <MainComponent>
-              {children}
-            </MainComponent>
-          </AuthProvider>
-        </Theme>
-      </body>
-    </html>
-  );
+	return (
+		<html lang="en" className='dark'>
+	  		<body className={inter.className}>
+				<Theme appearance='dark'>
+					<AuthProvider>
+						<MainComponent>
+							{children}
+						</MainComponent>
+					</AuthProvider>
+				</Theme>
+			</body>
+		</html>
+	);
 }

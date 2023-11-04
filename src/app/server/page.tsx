@@ -4,12 +4,12 @@ import { redirect } from "next/navigation"
 import UserCard from "../components/usercard"
 
 export default async function ServerPage() {
-    const session = await getServerSession(options)
+	const session = await getServerSession(options)
 
-    if (!session) {
-        redirect('/api/auth/signin?callbackUrl=/server')
-    }
-    return (
-      <UserCard user={session?.user} pagetype={"Server"} />
-  )
+	if (!session) {
+		redirect('/api/auth/signin?callbackUrl=/server')
+	}
+	return (
+		<UserCard user={session?.user} pagetype={"Server"} />
+	)
 }

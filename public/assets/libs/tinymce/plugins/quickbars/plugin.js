@@ -1,1 +1,447 @@
-!function(){"use strict";var e=tinymce.util.Tools.resolve("tinymce.PluginManager");let hasProto=(e,t,o)=>{var r;return!!o(e,t.prototype)||(null===(r=e.constructor)||void 0===r?void 0:r.name)===t.name},typeOf=e=>{let t=typeof e;return null===e?"null":"object"===t&&Array.isArray(e)?"array":"object"===t&&hasProto(e,String,(e,t)=>t.isPrototypeOf(e))?"string":t},isSimpleType=e=>t=>typeof t===e,isString=e=>"string"===typeOf(e),t=isSimpleType("boolean"),isNullable=e=>null==e,isNonNullable=e=>!isNullable(e),o=isSimpleType("function"),option=e=>t=>t.options.get(e),register=e=>{let o=e.options.register,toolbarProcessor=e=>o=>{let r=t(o)||isString(o);return r?t(o)?{value:o?e:"",valid:r}:{value:o.trim(),valid:r}:{valid:!1,message:"Must be a boolean or string."}},r="bold italic | quicklink h2 h3 blockquote";o("quickbars_selection_toolbar",{processor:toolbarProcessor(r),default:r});let i="quickimage quicktable";o("quickbars_insert_toolbar",{processor:toolbarProcessor(i),default:i});let n="alignleft aligncenter alignright";o("quickbars_image_toolbar",{processor:toolbarProcessor(n),default:n})},r=option("quickbars_selection_toolbar"),i=option("quickbars_insert_toolbar"),n=option("quickbars_image_toolbar"),l=0,generate=e=>{let t=new Date,o=t.getTime();return e+"_"+Math.floor(1e9*Math.random())+ ++l+String(o)},insertTable=(e,t,o)=>{e.execCommand("mceInsertTable",!1,{rows:o,columns:t})},insertBlob=(e,t,o)=>{let r=e.editorUpload.blobCache,i=r.create(generate("mceu"),o,t);r.add(i),e.insertContent(e.dom.createHTML("img",{src:i.blobUri()}))},blobToBase64=e=>new Promise(t=>{let o=new FileReader;o.onloadend=()=>{t(o.result.split(",")[1])},o.readAsDataURL(e)});var s=tinymce.util.Tools.resolve("tinymce.util.Delay");let pickFile=e=>new Promise(t=>{let o=!1,r=document.createElement("input");r.type="file",r.accept="image/*",r.style.position="fixed",r.style.left="0",r.style.top="0",r.style.opacity="0.001",document.body.appendChild(r);let resolveFileInput=e=>{var i;o||(null===(i=r.parentNode)||void 0===i||i.removeChild(r),o=!0,t(e))},changeHandler=e=>{resolveFileInput(Array.prototype.slice.call(e.target.files))};r.addEventListener("input",changeHandler),r.addEventListener("change",changeHandler);let cancelHandler=t=>{let cleanup=()=>{resolveFileInput([])};o||("focusin"===t.type?s.setEditorTimeout(e,cleanup,1e3):cleanup()),e.off("focusin remove",cancelHandler)};e.on("focusin remove",cancelHandler),r.click()}),setupButtons=e=>{e.ui.registry.addButton("quickimage",{icon:"image",tooltip:"Insert image",onAction:()=>{pickFile(e).then(t=>{if(t.length>0){let o=t[0];blobToBase64(o).then(t=>{insertBlob(e,t,o)})}})}}),e.ui.registry.addButton("quicktable",{icon:"table",tooltip:"Insert table",onAction:()=>{insertTable(e,2,2)}})},never=()=>!1;let Optional=class Optional{constructor(e,t){this.tag=e,this.value=t}static some(e){return new Optional(!0,e)}static none(){return Optional.singletonNone}fold(e,t){return this.tag?t(this.value):e()}isSome(){return this.tag}isNone(){return!this.tag}map(e){return this.tag?Optional.some(e(this.value)):Optional.none()}bind(e){return this.tag?e(this.value):Optional.none()}exists(e){return this.tag&&e(this.value)}forall(e){return!this.tag||e(this.value)}filter(e){return!this.tag||e(this.value)?this:Optional.none()}getOr(e){return this.tag?this.value:e}or(e){return this.tag?this:e}getOrThunk(e){return this.tag?this.value:e()}orThunk(e){return this.tag?this:e()}getOrDie(e){if(this.tag)return this.value;throw Error(null!=e?e:"Called getOrDie on None")}static from(e){return isNonNullable(e)?Optional.some(e):Optional.none()}getOrNull(){return this.tag?this.value:null}getOrUndefined(){return this.value}each(e){this.tag&&e(this.value)}toArray(){return this.tag?[this.value]:[]}toString(){return this.tag?`some(${this.value})`:"none()"}};Optional.singletonNone=new Optional(!1),"undefined"!=typeof window?window:Function("return this;")();let name=e=>{let t=e.dom.nodeName;return t.toLowerCase()},has$1=(e,t)=>{let o=e.dom;return!!o&&!!o.hasAttribute&&o.hasAttribute(t)};var ClosestOrAncestor=(e,t,r,i,n)=>e(r,i)?Optional.some(r):o(n)&&n(r)?Optional.none():t(r,i,n);let fromDom=e=>{if(null==e)throw Error("Node cannot be null or undefined");return{dom:e}},a={fromHtml:(e,t)=>{let o=(t||document).createElement("div");if(o.innerHTML=e,!o.hasChildNodes()||o.childNodes.length>1){let t="HTML does not have a single root node";throw console.error(t,e),Error(t)}return fromDom(o.childNodes[0])},fromTag:(e,t)=>{let o=(t||document).createElement(e);return fromDom(o)},fromText:(e,t)=>{let o=(t||document).createTextNode(e);return fromDom(o)},fromDom,fromPoint:(e,t,o)=>Optional.from(e.dom.elementFromPoint(t,o)).map(fromDom)},is=(e,t)=>{let o=e.dom;if(1!==o.nodeType)return!1;if(void 0!==o.matches)return o.matches(t);if(void 0!==o.msMatchesSelector)return o.msMatchesSelector(t);if(void 0!==o.webkitMatchesSelector)return o.webkitMatchesSelector(t);if(void 0!==o.mozMatchesSelector)return o.mozMatchesSelector(t);throw Error("Browser lacks native selectors")},ancestor$1=(e,t,r)=>{let i=e.dom,n=o(r)?r:never;for(;i.parentNode;){i=i.parentNode;let e=a.fromDom(i);if(t(e))return Optional.some(e);if(n(e))break}return Optional.none()},closest$2=(e,t,o)=>ClosestOrAncestor((e,t)=>t(e),ancestor$1,e,t,o),closest$1=(e,t,o)=>closest$2(e,t,o).isSome(),ancestor=(e,t,o)=>ancestor$1(e,e=>is(e,t),o),closest=(e,t,o)=>ClosestOrAncestor((e,t)=>is(e,t),ancestor,e,t,o),addToEditor$1=e=>{let t=i(e);t.length>0&&e.ui.registry.addContextToolbar("quickblock",{predicate:t=>{let o=a.fromDom(t),r=e.schema.getTextBlockElements(),isRoot=t=>t.dom===e.getBody();return!has$1(o,"data-mce-bogus")&&closest(o,'table,[data-mce-bogus="all"]',isRoot).fold(()=>closest$1(o,t=>name(t) in r&&e.dom.isEmpty(t.dom),isRoot),never)},items:t,position:"line",scope:"editor"})},supports=e=>void 0!==e.dom.classList,has=(e,t)=>supports(e)&&e.dom.classList.contains(t),addToEditor=e=>{let isEditable=t=>e.dom.isEditable(t),isInEditableContext=e=>isEditable(e.parentElement),isImage=e=>{let t="FIGURE"===e.nodeName&&/image/i.test(e.className),o="IMG"===e.nodeName||t,r=has(a.fromDom(e),"mce-pagebreak");return o&&isInEditableContext(e)&&!r},t=n(e);t.length>0&&e.ui.registry.addContextToolbar("imageselection",{predicate:isImage,items:t,position:"node"});let o=r(e);o.length>0&&e.ui.registry.addContextToolbar("textselection",{predicate:t=>!isImage(t)&&!e.selection.isCollapsed()&&isEditable(t),items:o,position:"selection",scope:"editor"})};e.add("quickbars",e=>{register(e),setupButtons(e),addToEditor$1(e),addToEditor(e)})}();
+/**
+ * TinyMCE version 6.7.0 (2023-08-30)
+ */
+
+(function () {
+    'use strict';
+
+    var global$1 = tinymce.util.Tools.resolve('tinymce.PluginManager');
+
+    const hasProto = (v, constructor, predicate) => {
+      var _a;
+      if (predicate(v, constructor.prototype)) {
+        return true;
+      } else {
+        return ((_a = v.constructor) === null || _a === void 0 ? void 0 : _a.name) === constructor.name;
+      }
+    };
+    const typeOf = x => {
+      const t = typeof x;
+      if (x === null) {
+        return 'null';
+      } else if (t === 'object' && Array.isArray(x)) {
+        return 'array';
+      } else if (t === 'object' && hasProto(x, String, (o, proto) => proto.isPrototypeOf(o))) {
+        return 'string';
+      } else {
+        return t;
+      }
+    };
+    const isType = type => value => typeOf(value) === type;
+    const isSimpleType = type => value => typeof value === type;
+    const isString = isType('string');
+    const isBoolean = isSimpleType('boolean');
+    const isNullable = a => a === null || a === undefined;
+    const isNonNullable = a => !isNullable(a);
+    const isFunction = isSimpleType('function');
+
+    const option = name => editor => editor.options.get(name);
+    const register = editor => {
+      const registerOption = editor.options.register;
+      const toolbarProcessor = defaultValue => value => {
+        const valid = isBoolean(value) || isString(value);
+        if (valid) {
+          if (isBoolean(value)) {
+            return {
+              value: value ? defaultValue : '',
+              valid
+            };
+          } else {
+            return {
+              value: value.trim(),
+              valid
+            };
+          }
+        } else {
+          return {
+            valid: false,
+            message: 'Must be a boolean or string.'
+          };
+        }
+      };
+      const defaultSelectionToolbar = 'bold italic | quicklink h2 h3 blockquote';
+      registerOption('quickbars_selection_toolbar', {
+        processor: toolbarProcessor(defaultSelectionToolbar),
+        default: defaultSelectionToolbar
+      });
+      const defaultInsertToolbar = 'quickimage quicktable';
+      registerOption('quickbars_insert_toolbar', {
+        processor: toolbarProcessor(defaultInsertToolbar),
+        default: defaultInsertToolbar
+      });
+      const defaultImageToolbar = 'alignleft aligncenter alignright';
+      registerOption('quickbars_image_toolbar', {
+        processor: toolbarProcessor(defaultImageToolbar),
+        default: defaultImageToolbar
+      });
+    };
+    const getTextSelectionToolbarItems = option('quickbars_selection_toolbar');
+    const getInsertToolbarItems = option('quickbars_insert_toolbar');
+    const getImageToolbarItems = option('quickbars_image_toolbar');
+
+    let unique = 0;
+    const generate = prefix => {
+      const date = new Date();
+      const time = date.getTime();
+      const random = Math.floor(Math.random() * 1000000000);
+      unique++;
+      return prefix + '_' + random + unique + String(time);
+    };
+
+    const insertTable = (editor, columns, rows) => {
+      editor.execCommand('mceInsertTable', false, {
+        rows,
+        columns
+      });
+    };
+    const insertBlob = (editor, base64, blob) => {
+      const blobCache = editor.editorUpload.blobCache;
+      const blobInfo = blobCache.create(generate('mceu'), blob, base64);
+      blobCache.add(blobInfo);
+      editor.insertContent(editor.dom.createHTML('img', { src: blobInfo.blobUri() }));
+    };
+
+    const blobToBase64 = blob => {
+      return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          resolve(reader.result.split(',')[1]);
+        };
+        reader.readAsDataURL(blob);
+      });
+    };
+
+    var global = tinymce.util.Tools.resolve('tinymce.util.Delay');
+
+    const pickFile = editor => new Promise(resolve => {
+      let resolved = false;
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      fileInput.style.position = 'fixed';
+      fileInput.style.left = '0';
+      fileInput.style.top = '0';
+      fileInput.style.opacity = '0.001';
+      document.body.appendChild(fileInput);
+      const resolveFileInput = value => {
+        var _a;
+        if (!resolved) {
+          (_a = fileInput.parentNode) === null || _a === void 0 ? void 0 : _a.removeChild(fileInput);
+          resolved = true;
+          resolve(value);
+        }
+      };
+      const changeHandler = e => {
+        resolveFileInput(Array.prototype.slice.call(e.target.files));
+      };
+      fileInput.addEventListener('input', changeHandler);
+      fileInput.addEventListener('change', changeHandler);
+      const cancelHandler = e => {
+        const cleanup = () => {
+          resolveFileInput([]);
+        };
+        if (!resolved) {
+          if (e.type === 'focusin') {
+            global.setEditorTimeout(editor, cleanup, 1000);
+          } else {
+            cleanup();
+          }
+        }
+        editor.off('focusin remove', cancelHandler);
+      };
+      editor.on('focusin remove', cancelHandler);
+      fileInput.click();
+    });
+
+    const setupButtons = editor => {
+      editor.ui.registry.addButton('quickimage', {
+        icon: 'image',
+        tooltip: 'Insert image',
+        onAction: () => {
+          pickFile(editor).then(files => {
+            if (files.length > 0) {
+              const blob = files[0];
+              blobToBase64(blob).then(base64 => {
+                insertBlob(editor, base64, blob);
+              });
+            }
+          });
+        }
+      });
+      editor.ui.registry.addButton('quicktable', {
+        icon: 'table',
+        tooltip: 'Insert table',
+        onAction: () => {
+          insertTable(editor, 2, 2);
+        }
+      });
+    };
+
+    const constant = value => {
+      return () => {
+        return value;
+      };
+    };
+    const never = constant(false);
+
+    class Optional {
+      constructor(tag, value) {
+        this.tag = tag;
+        this.value = value;
+      }
+      static some(value) {
+        return new Optional(true, value);
+      }
+      static none() {
+        return Optional.singletonNone;
+      }
+      fold(onNone, onSome) {
+        if (this.tag) {
+          return onSome(this.value);
+        } else {
+          return onNone();
+        }
+      }
+      isSome() {
+        return this.tag;
+      }
+      isNone() {
+        return !this.tag;
+      }
+      map(mapper) {
+        if (this.tag) {
+          return Optional.some(mapper(this.value));
+        } else {
+          return Optional.none();
+        }
+      }
+      bind(binder) {
+        if (this.tag) {
+          return binder(this.value);
+        } else {
+          return Optional.none();
+        }
+      }
+      exists(predicate) {
+        return this.tag && predicate(this.value);
+      }
+      forall(predicate) {
+        return !this.tag || predicate(this.value);
+      }
+      filter(predicate) {
+        if (!this.tag || predicate(this.value)) {
+          return this;
+        } else {
+          return Optional.none();
+        }
+      }
+      getOr(replacement) {
+        return this.tag ? this.value : replacement;
+      }
+      or(replacement) {
+        return this.tag ? this : replacement;
+      }
+      getOrThunk(thunk) {
+        return this.tag ? this.value : thunk();
+      }
+      orThunk(thunk) {
+        return this.tag ? this : thunk();
+      }
+      getOrDie(message) {
+        if (!this.tag) {
+          throw new Error(message !== null && message !== void 0 ? message : 'Called getOrDie on None');
+        } else {
+          return this.value;
+        }
+      }
+      static from(value) {
+        return isNonNullable(value) ? Optional.some(value) : Optional.none();
+      }
+      getOrNull() {
+        return this.tag ? this.value : null;
+      }
+      getOrUndefined() {
+        return this.value;
+      }
+      each(worker) {
+        if (this.tag) {
+          worker(this.value);
+        }
+      }
+      toArray() {
+        return this.tag ? [this.value] : [];
+      }
+      toString() {
+        return this.tag ? `some(${ this.value })` : 'none()';
+      }
+    }
+    Optional.singletonNone = new Optional(false);
+
+    typeof window !== 'undefined' ? window : Function('return this;')();
+
+    const ELEMENT = 1;
+
+    const name = element => {
+      const r = element.dom.nodeName;
+      return r.toLowerCase();
+    };
+
+    const has$1 = (element, key) => {
+      const dom = element.dom;
+      return dom && dom.hasAttribute ? dom.hasAttribute(key) : false;
+    };
+
+    var ClosestOrAncestor = (is, ancestor, scope, a, isRoot) => {
+      if (is(scope, a)) {
+        return Optional.some(scope);
+      } else if (isFunction(isRoot) && isRoot(scope)) {
+        return Optional.none();
+      } else {
+        return ancestor(scope, a, isRoot);
+      }
+    };
+
+    const fromHtml = (html, scope) => {
+      const doc = scope || document;
+      const div = doc.createElement('div');
+      div.innerHTML = html;
+      if (!div.hasChildNodes() || div.childNodes.length > 1) {
+        const message = 'HTML does not have a single root node';
+        console.error(message, html);
+        throw new Error(message);
+      }
+      return fromDom(div.childNodes[0]);
+    };
+    const fromTag = (tag, scope) => {
+      const doc = scope || document;
+      const node = doc.createElement(tag);
+      return fromDom(node);
+    };
+    const fromText = (text, scope) => {
+      const doc = scope || document;
+      const node = doc.createTextNode(text);
+      return fromDom(node);
+    };
+    const fromDom = node => {
+      if (node === null || node === undefined) {
+        throw new Error('Node cannot be null or undefined');
+      }
+      return { dom: node };
+    };
+    const fromPoint = (docElm, x, y) => Optional.from(docElm.dom.elementFromPoint(x, y)).map(fromDom);
+    const SugarElement = {
+      fromHtml,
+      fromTag,
+      fromText,
+      fromDom,
+      fromPoint
+    };
+
+    const is = (element, selector) => {
+      const dom = element.dom;
+      if (dom.nodeType !== ELEMENT) {
+        return false;
+      } else {
+        const elem = dom;
+        if (elem.matches !== undefined) {
+          return elem.matches(selector);
+        } else if (elem.msMatchesSelector !== undefined) {
+          return elem.msMatchesSelector(selector);
+        } else if (elem.webkitMatchesSelector !== undefined) {
+          return elem.webkitMatchesSelector(selector);
+        } else if (elem.mozMatchesSelector !== undefined) {
+          return elem.mozMatchesSelector(selector);
+        } else {
+          throw new Error('Browser lacks native selectors');
+        }
+      }
+    };
+
+    const ancestor$1 = (scope, predicate, isRoot) => {
+      let element = scope.dom;
+      const stop = isFunction(isRoot) ? isRoot : never;
+      while (element.parentNode) {
+        element = element.parentNode;
+        const el = SugarElement.fromDom(element);
+        if (predicate(el)) {
+          return Optional.some(el);
+        } else if (stop(el)) {
+          break;
+        }
+      }
+      return Optional.none();
+    };
+    const closest$2 = (scope, predicate, isRoot) => {
+      const is = (s, test) => test(s);
+      return ClosestOrAncestor(is, ancestor$1, scope, predicate, isRoot);
+    };
+
+    const closest$1 = (scope, predicate, isRoot) => closest$2(scope, predicate, isRoot).isSome();
+
+    const ancestor = (scope, selector, isRoot) => ancestor$1(scope, e => is(e, selector), isRoot);
+    const closest = (scope, selector, isRoot) => {
+      const is$1 = (element, selector) => is(element, selector);
+      return ClosestOrAncestor(is$1, ancestor, scope, selector, isRoot);
+    };
+
+    const addToEditor$1 = editor => {
+      const insertToolbarItems = getInsertToolbarItems(editor);
+      if (insertToolbarItems.length > 0) {
+        editor.ui.registry.addContextToolbar('quickblock', {
+          predicate: node => {
+            const sugarNode = SugarElement.fromDom(node);
+            const textBlockElementsMap = editor.schema.getTextBlockElements();
+            const isRoot = elem => elem.dom === editor.getBody();
+            return !has$1(sugarNode, 'data-mce-bogus') && closest(sugarNode, 'table,[data-mce-bogus="all"]', isRoot).fold(() => closest$1(sugarNode, elem => name(elem) in textBlockElementsMap && editor.dom.isEmpty(elem.dom), isRoot), never);
+          },
+          items: insertToolbarItems,
+          position: 'line',
+          scope: 'editor'
+        });
+      }
+    };
+
+    const supports = element => element.dom.classList !== undefined;
+
+    const has = (element, clazz) => supports(element) && element.dom.classList.contains(clazz);
+
+    const addToEditor = editor => {
+      const isEditable = node => editor.dom.isEditable(node);
+      const isInEditableContext = el => isEditable(el.parentElement);
+      const isImage = node => {
+        const isImageFigure = node.nodeName === 'FIGURE' && /image/i.test(node.className);
+        const isImage = node.nodeName === 'IMG' || isImageFigure;
+        const isPagebreak = has(SugarElement.fromDom(node), 'mce-pagebreak');
+        return isImage && isInEditableContext(node) && !isPagebreak;
+      };
+      const imageToolbarItems = getImageToolbarItems(editor);
+      if (imageToolbarItems.length > 0) {
+        editor.ui.registry.addContextToolbar('imageselection', {
+          predicate: isImage,
+          items: imageToolbarItems,
+          position: 'node'
+        });
+      }
+      const textToolbarItems = getTextSelectionToolbarItems(editor);
+      if (textToolbarItems.length > 0) {
+        editor.ui.registry.addContextToolbar('textselection', {
+          predicate: node => !isImage(node) && !editor.selection.isCollapsed() && isEditable(node),
+          items: textToolbarItems,
+          position: 'selection',
+          scope: 'editor'
+        });
+      }
+    };
+
+    var Plugin = () => {
+      global$1.add('quickbars', editor => {
+        register(editor);
+        setupButtons(editor);
+        addToEditor$1(editor);
+        addToEditor(editor);
+      });
+    };
+
+    Plugin();
+
+})();

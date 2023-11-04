@@ -1,1 +1,117 @@
-!function(){"use strict";var e=tinymce.util.Tools.resolve("tinymce.PluginManager"),t=tinymce.util.Tools.resolve("tinymce.Env");let option=e=>t=>t.options.get(e),register$2=e=>{let t=e.options.register;t("pagebreak_separator",{processor:"string",default:"<!-- pagebreak -->"}),t("pagebreak_split_block",{processor:"boolean",default:!1})},a=option("pagebreak_separator"),o=option("pagebreak_split_block"),r="mce-pagebreak",getPlaceholderHtml=e=>{let a=`<img src="${t.transparentSrc}" class="${r}" data-mce-resize="false" data-mce-placeholder />`;return e?`<p>${a}</p>`:a},setup$1=e=>{let t=a(e),shouldSplitBlock$1=()=>o(e),n=RegExp(t.replace(/[\?\.\*\[\]\(\)\{\}\+\^\$\:]/g,e=>"\\"+e),"gi");e.on("BeforeSetContent",e=>{e.content=e.content.replace(n,getPlaceholderHtml(shouldSplitBlock$1()))}),e.on("PreInit",()=>{e.serializer.addNodeFilter("img",a=>{let o=a.length,n,l;for(;o--;)if((l=(n=a[o]).attr("class"))&&-1!==l.indexOf(r)){let a=n.parent;if(a&&e.schema.getBlockElements()[a.name]&&shouldSplitBlock$1()){a.type=3,a.value=t,a.raw=!0,n.remove();continue}n.type=3,n.value=t,n.raw=!0}})})},register$1=e=>{e.addCommand("mcePageBreak",()=>{e.insertContent(getPlaceholderHtml(o(e)))})},setup=e=>{e.on("ResolveName",t=>{"IMG"===t.target.nodeName&&e.dom.hasClass(t.target,r)&&(t.name="pagebreak")})},onSetupEditable=e=>t=>{let nodeChanged=()=>{t.setEnabled(e.selection.isEditable())};return e.on("NodeChange",nodeChanged),nodeChanged(),()=>{e.off("NodeChange",nodeChanged)}},register=e=>{let onAction=()=>e.execCommand("mcePageBreak");e.ui.registry.addButton("pagebreak",{icon:"page-break",tooltip:"Page break",onAction,onSetup:onSetupEditable(e)}),e.ui.registry.addMenuItem("pagebreak",{text:"Page break",icon:"page-break",onAction,onSetup:onSetupEditable(e)})};e.add("pagebreak",e=>{register$2(e),register$1(e),register(e),setup$1(e),setup(e)})}();
+/**
+ * TinyMCE version 6.7.0 (2023-08-30)
+ */
+
+(function () {
+    'use strict';
+
+    var global$1 = tinymce.util.Tools.resolve('tinymce.PluginManager');
+
+    var global = tinymce.util.Tools.resolve('tinymce.Env');
+
+    const option = name => editor => editor.options.get(name);
+    const register$2 = editor => {
+      const registerOption = editor.options.register;
+      registerOption('pagebreak_separator', {
+        processor: 'string',
+        default: '<!-- pagebreak -->'
+      });
+      registerOption('pagebreak_split_block', {
+        processor: 'boolean',
+        default: false
+      });
+    };
+    const getSeparatorHtml = option('pagebreak_separator');
+    const shouldSplitBlock = option('pagebreak_split_block');
+
+    const pageBreakClass = 'mce-pagebreak';
+    const getPlaceholderHtml = shouldSplitBlock => {
+      const html = `<img src="${ global.transparentSrc }" class="${ pageBreakClass }" data-mce-resize="false" data-mce-placeholder />`;
+      return shouldSplitBlock ? `<p>${ html }</p>` : html;
+    };
+    const setup$1 = editor => {
+      const separatorHtml = getSeparatorHtml(editor);
+      const shouldSplitBlock$1 = () => shouldSplitBlock(editor);
+      const pageBreakSeparatorRegExp = new RegExp(separatorHtml.replace(/[\?\.\*\[\]\(\)\{\}\+\^\$\:]/g, a => {
+        return '\\' + a;
+      }), 'gi');
+      editor.on('BeforeSetContent', e => {
+        e.content = e.content.replace(pageBreakSeparatorRegExp, getPlaceholderHtml(shouldSplitBlock$1()));
+      });
+      editor.on('PreInit', () => {
+        editor.serializer.addNodeFilter('img', nodes => {
+          let i = nodes.length, node, className;
+          while (i--) {
+            node = nodes[i];
+            className = node.attr('class');
+            if (className && className.indexOf(pageBreakClass) !== -1) {
+              const parentNode = node.parent;
+              if (parentNode && editor.schema.getBlockElements()[parentNode.name] && shouldSplitBlock$1()) {
+                parentNode.type = 3;
+                parentNode.value = separatorHtml;
+                parentNode.raw = true;
+                node.remove();
+                continue;
+              }
+              node.type = 3;
+              node.value = separatorHtml;
+              node.raw = true;
+            }
+          }
+        });
+      });
+    };
+
+    const register$1 = editor => {
+      editor.addCommand('mcePageBreak', () => {
+        editor.insertContent(getPlaceholderHtml(shouldSplitBlock(editor)));
+      });
+    };
+
+    const setup = editor => {
+      editor.on('ResolveName', e => {
+        if (e.target.nodeName === 'IMG' && editor.dom.hasClass(e.target, pageBreakClass)) {
+          e.name = 'pagebreak';
+        }
+      });
+    };
+
+    const onSetupEditable = editor => api => {
+      const nodeChanged = () => {
+        api.setEnabled(editor.selection.isEditable());
+      };
+      editor.on('NodeChange', nodeChanged);
+      nodeChanged();
+      return () => {
+        editor.off('NodeChange', nodeChanged);
+      };
+    };
+    const register = editor => {
+      const onAction = () => editor.execCommand('mcePageBreak');
+      editor.ui.registry.addButton('pagebreak', {
+        icon: 'page-break',
+        tooltip: 'Page break',
+        onAction,
+        onSetup: onSetupEditable(editor)
+      });
+      editor.ui.registry.addMenuItem('pagebreak', {
+        text: 'Page break',
+        icon: 'page-break',
+        onAction,
+        onSetup: onSetupEditable(editor)
+      });
+    };
+
+    var Plugin = () => {
+      global$1.add('pagebreak', editor => {
+        register$2(editor);
+        register$1(editor);
+        register(editor);
+        setup$1(editor);
+        setup(editor);
+      });
+    };
+
+    Plugin();
+
+})();

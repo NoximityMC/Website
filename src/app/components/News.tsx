@@ -13,15 +13,15 @@ export default function News() {
 	const news = data.data.slice(0, 5);
 
   	return (
-    	<div className={styles.mainInner}>
-      		<h1>Latest News</h1>
-      		<div className={styles.newMain}>
-        		{news.map((item:any) => {
-              		return (
-                		<NewsItem key={item.id} news={item} />
-              		)
-            	})}
-      		</div>
-    	</div>
+		<div className={styles.mainInner}>
+	  		<h1>Latest News</h1>
+	  		<div className={styles.newMain}>
+				{news.map((item:any) => {
+			  		return (
+						<NewsItem key={item.id} news={item} />
+			  		)
+				})}
+	  		</div>
+		</div>
   	);
 }

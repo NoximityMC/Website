@@ -1,1 +1,228 @@
-!function(){"use strict";var e,t=tinymce.util.Tools.resolve("tinymce.PluginManager");let link=()=>/(?:[A-Za-z][A-Za-z\d.+-]{0,14}:\/\/(?:[-.~*+=!&;:'%@?^${}(),\w]+@)?|www\.|[-;:&=+$,.\w]+@)[A-Za-z\d-]+(?:\.[A-Za-z\d-]+)*(?::\d+)?(?:\/(?:[-.~*+=!;:'%@$(),\/\w]*[-~*+=%@$()\/\w])?)?(?:\?(?:[-.~*+=!&;:'%@?^${}(),\/\w]+))?(?:#(?:[-.~*+=!&;:'%@?^${}(),\/\w]+))?/g,option=e=>t=>t.options.get(e),register=e=>{let t=e.options.register;t("autolink_pattern",{processor:"regexp",default:RegExp("^"+link().source+"$","i")}),t("link_default_target",{processor:"string"}),t("link_default_protocol",{processor:"string",default:"https"})},n=option("autolink_pattern"),r=option("link_default_target"),o=option("link_default_protocol"),a=option("allow_unsafe_link_target"),hasProto=(e,t,n)=>{var r;return!!n(e,t.prototype)||(null===(r=e.constructor)||void 0===r?void 0:r.name)===t.name},typeOf=e=>{let t=typeof e;return null===e?"null":"object"===t&&Array.isArray(e)?"array":"object"===t&&hasProto(e,String,(e,t)=>t.isPrototypeOf(e))?"string":t},isString=e=>"string"===typeOf(e),l=(e=void 0,t=>e===t),isNullable=e=>null==e,isNonNullable=e=>!isNullable(e),not=e=>t=>!e(t),i=Object.hasOwnProperty,has=(e,t)=>i.call(e,t),checkRange=(e,t,n)=>""===t||e.length>=t.length&&e.substr(n,n+t.length)===t,contains=(e,t,n=0,r)=>{let o=e.indexOf(t,n);return -1!==o&&(!!l(r)||o+t.length<=r)},startsWith=(e,t)=>checkRange(e,t,0),isZwsp=e=>"\uFEFF"===e,removeZwsp=e=>e.replace(/\uFEFF/g,"");var s=tinymce.util.Tools.resolve("tinymce.dom.TextSeeker");let isTextNode=e=>3===e.nodeType,isElement=e=>1===e.nodeType,isBracketOrSpace=e=>/^[(\[{ \u00a0]$/.test(e),hasProtocol=e=>/^([A-Za-z][A-Za-z\d.+-]*:\/\/)|mailto:/.test(e),isPunctuation=e=>/[?!,.;:]/.test(e),findChar=(e,t,n)=>{for(let r=t-1;r>=0;r--){let t=e.charAt(r);if(!isZwsp(t)&&n(t))return r}return -1},freefallRtl=(e,t)=>{let n=e,r=t;for(;isElement(n)&&n.childNodes[r];)r=isTextNode(n=n.childNodes[r])?n.data.length:n.childNodes.length;return{container:n,offset:r}},parseCurrentLine=(e,t)=>{var r;let a=e.schema.getVoidElements(),l=n(e),{dom:i,selection:c}=e;if(null!==i.getParent(c.getNode(),"a[href]"))return null;let d=c.getRng(),u=s(i,e=>i.isBlock(e)||has(a,e.nodeName.toLowerCase())||"false"===i.getContentEditable(e)),{container:f,offset:p}=freefallRtl(d.endContainer,d.endOffset),g=null!==(r=i.getParent(f,i.isBlock))&&void 0!==r?r:i.getRoot(),h=u.backwards(f,p+t,(e,t)=>{let n=e.data,r=findChar(n,t,not(isBracketOrSpace));return -1===r||isPunctuation(n[r])?r:r+1},g);if(!h)return null;let k=h.container,m=u.backwards(h.container,h.offset,(e,t)=>{k=e;let n=findChar(e.data,t,isBracketOrSpace);return -1===n?n:n+1},g),w=i.createRng();m?w.setStart(m.container,m.offset):w.setStart(k,0),w.setEnd(h.container,h.offset);let y=removeZwsp(w.toString()),v=y.match(l);if(!v)return null;{let t=v[0];if(startsWith(t,"www.")){let n=o(e);t=n+"://"+t}else contains(t,"@")&&!hasProtocol(t)&&(t="mailto:"+t);return{rng:w,url:t}}},convertToLink=(e,t)=>{let{dom:n,selection:o}=e,{rng:l,url:i}=t,s=o.getBookmark();o.setRng(l);let c="createlink",d={command:c,ui:!1,value:i},u=e.dispatch("BeforeExecCommand",d);if(!u.isDefaultPrevented()){e.getDoc().execCommand(c,!1,i),e.dispatch("ExecCommand",d);let t=r(e);if(isString(t)){let r=o.getNode();n.setAttrib(r,"target",t),"_blank"!==t||a(e)||n.setAttrib(r,"rel","noopener")}}o.moveToBookmark(s),e.nodeChanged()},handleSpacebar=e=>{let t=parseCurrentLine(e,-1);isNonNullable(t)&&convertToLink(e,t)},handleEnter=e=>{let t=parseCurrentLine(e,0);isNonNullable(t)&&convertToLink(e,t)},setup=e=>{e.on("keydown",t=>{13!==t.keyCode||t.isDefaultPrevented()||handleEnter(e)}),e.on("keyup",t=>{32===t.keyCode?handleSpacebar(e):(48===t.keyCode&&t.shiftKey||221===t.keyCode)&&handleSpacebar(e)})};t.add("autolink",e=>{register(e),setup(e)})}();
+/**
+ * TinyMCE version 6.7.0 (2023-08-30)
+ */
+
+(function () {
+  'use strict';
+
+  var global$1 = tinymce.util.Tools.resolve('tinymce.PluginManager');
+
+  const link = () => /(?:[A-Za-z][A-Za-z\d.+-]{0,14}:\/\/(?:[-.~*+=!&;:'%@?^${}(),\w]+@)?|www\.|[-;:&=+$,.\w]+@)[A-Za-z\d-]+(?:\.[A-Za-z\d-]+)*(?::\d+)?(?:\/(?:[-.~*+=!;:'%@$(),\/\w]*[-~*+=%@$()\/\w])?)?(?:\?(?:[-.~*+=!&;:'%@?^${}(),\/\w]+))?(?:#(?:[-.~*+=!&;:'%@?^${}(),\/\w]+))?/g;
+
+  const option = name => editor => editor.options.get(name);
+  const register = editor => {
+    const registerOption = editor.options.register;
+    registerOption('autolink_pattern', {
+      processor: 'regexp',
+      default: new RegExp('^' + link().source + '$', 'i')
+    });
+    registerOption('link_default_target', { processor: 'string' });
+    registerOption('link_default_protocol', {
+      processor: 'string',
+      default: 'https'
+    });
+  };
+  const getAutoLinkPattern = option('autolink_pattern');
+  const getDefaultLinkTarget = option('link_default_target');
+  const getDefaultLinkProtocol = option('link_default_protocol');
+  const allowUnsafeLinkTarget = option('allow_unsafe_link_target');
+
+  const hasProto = (v, constructor, predicate) => {
+    var _a;
+    if (predicate(v, constructor.prototype)) {
+      return true;
+    } else {
+      return ((_a = v.constructor) === null || _a === void 0 ? void 0 : _a.name) === constructor.name;
+    }
+  };
+  const typeOf = x => {
+    const t = typeof x;
+    if (x === null) {
+      return 'null';
+    } else if (t === 'object' && Array.isArray(x)) {
+      return 'array';
+    } else if (t === 'object' && hasProto(x, String, (o, proto) => proto.isPrototypeOf(o))) {
+      return 'string';
+    } else {
+      return t;
+    }
+  };
+  const isType = type => value => typeOf(value) === type;
+  const eq = t => a => t === a;
+  const isString = isType('string');
+  const isUndefined = eq(undefined);
+  const isNullable = a => a === null || a === undefined;
+  const isNonNullable = a => !isNullable(a);
+
+  const not = f => t => !f(t);
+
+  const hasOwnProperty = Object.hasOwnProperty;
+  const has = (obj, key) => hasOwnProperty.call(obj, key);
+
+  const checkRange = (str, substr, start) => substr === '' || str.length >= substr.length && str.substr(start, start + substr.length) === substr;
+  const contains = (str, substr, start = 0, end) => {
+    const idx = str.indexOf(substr, start);
+    if (idx !== -1) {
+      return isUndefined(end) ? true : idx + substr.length <= end;
+    } else {
+      return false;
+    }
+  };
+  const startsWith = (str, prefix) => {
+    return checkRange(str, prefix, 0);
+  };
+
+  const zeroWidth = '\uFEFF';
+  const isZwsp = char => char === zeroWidth;
+  const removeZwsp = s => s.replace(/\uFEFF/g, '');
+
+  var global = tinymce.util.Tools.resolve('tinymce.dom.TextSeeker');
+
+  const isTextNode = node => node.nodeType === 3;
+  const isElement = node => node.nodeType === 1;
+  const isBracketOrSpace = char => /^[(\[{ \u00a0]$/.test(char);
+  const hasProtocol = url => /^([A-Za-z][A-Za-z\d.+-]*:\/\/)|mailto:/.test(url);
+  const isPunctuation = char => /[?!,.;:]/.test(char);
+  const findChar = (text, index, predicate) => {
+    for (let i = index - 1; i >= 0; i--) {
+      const char = text.charAt(i);
+      if (!isZwsp(char) && predicate(char)) {
+        return i;
+      }
+    }
+    return -1;
+  };
+  const freefallRtl = (container, offset) => {
+    let tempNode = container;
+    let tempOffset = offset;
+    while (isElement(tempNode) && tempNode.childNodes[tempOffset]) {
+      tempNode = tempNode.childNodes[tempOffset];
+      tempOffset = isTextNode(tempNode) ? tempNode.data.length : tempNode.childNodes.length;
+    }
+    return {
+      container: tempNode,
+      offset: tempOffset
+    };
+  };
+
+  const parseCurrentLine = (editor, offset) => {
+    var _a;
+    const voidElements = editor.schema.getVoidElements();
+    const autoLinkPattern = getAutoLinkPattern(editor);
+    const {dom, selection} = editor;
+    if (dom.getParent(selection.getNode(), 'a[href]') !== null) {
+      return null;
+    }
+    const rng = selection.getRng();
+    const textSeeker = global(dom, node => {
+      return dom.isBlock(node) || has(voidElements, node.nodeName.toLowerCase()) || dom.getContentEditable(node) === 'false';
+    });
+    const {
+      container: endContainer,
+      offset: endOffset
+    } = freefallRtl(rng.endContainer, rng.endOffset);
+    const root = (_a = dom.getParent(endContainer, dom.isBlock)) !== null && _a !== void 0 ? _a : dom.getRoot();
+    const endSpot = textSeeker.backwards(endContainer, endOffset + offset, (node, offset) => {
+      const text = node.data;
+      const idx = findChar(text, offset, not(isBracketOrSpace));
+      return idx === -1 || isPunctuation(text[idx]) ? idx : idx + 1;
+    }, root);
+    if (!endSpot) {
+      return null;
+    }
+    let lastTextNode = endSpot.container;
+    const startSpot = textSeeker.backwards(endSpot.container, endSpot.offset, (node, offset) => {
+      lastTextNode = node;
+      const idx = findChar(node.data, offset, isBracketOrSpace);
+      return idx === -1 ? idx : idx + 1;
+    }, root);
+    const newRng = dom.createRng();
+    if (!startSpot) {
+      newRng.setStart(lastTextNode, 0);
+    } else {
+      newRng.setStart(startSpot.container, startSpot.offset);
+    }
+    newRng.setEnd(endSpot.container, endSpot.offset);
+    const rngText = removeZwsp(newRng.toString());
+    const matches = rngText.match(autoLinkPattern);
+    if (matches) {
+      let url = matches[0];
+      if (startsWith(url, 'www.')) {
+        const protocol = getDefaultLinkProtocol(editor);
+        url = protocol + '://' + url;
+      } else if (contains(url, '@') && !hasProtocol(url)) {
+        url = 'mailto:' + url;
+      }
+      return {
+        rng: newRng,
+        url
+      };
+    } else {
+      return null;
+    }
+  };
+  const convertToLink = (editor, result) => {
+    const {dom, selection} = editor;
+    const {rng, url} = result;
+    const bookmark = selection.getBookmark();
+    selection.setRng(rng);
+    const command = 'createlink';
+    const args = {
+      command,
+      ui: false,
+      value: url
+    };
+    const beforeExecEvent = editor.dispatch('BeforeExecCommand', args);
+    if (!beforeExecEvent.isDefaultPrevented()) {
+      editor.getDoc().execCommand(command, false, url);
+      editor.dispatch('ExecCommand', args);
+      const defaultLinkTarget = getDefaultLinkTarget(editor);
+      if (isString(defaultLinkTarget)) {
+        const anchor = selection.getNode();
+        dom.setAttrib(anchor, 'target', defaultLinkTarget);
+        if (defaultLinkTarget === '_blank' && !allowUnsafeLinkTarget(editor)) {
+          dom.setAttrib(anchor, 'rel', 'noopener');
+        }
+      }
+    }
+    selection.moveToBookmark(bookmark);
+    editor.nodeChanged();
+  };
+  const handleSpacebar = editor => {
+    const result = parseCurrentLine(editor, -1);
+    if (isNonNullable(result)) {
+      convertToLink(editor, result);
+    }
+  };
+  const handleBracket = handleSpacebar;
+  const handleEnter = editor => {
+    const result = parseCurrentLine(editor, 0);
+    if (isNonNullable(result)) {
+      convertToLink(editor, result);
+    }
+  };
+  const setup = editor => {
+    editor.on('keydown', e => {
+      if (e.keyCode === 13 && !e.isDefaultPrevented()) {
+        handleEnter(editor);
+      }
+    });
+    editor.on('keyup', e => {
+      if (e.keyCode === 32) {
+        handleSpacebar(editor);
+      } else if (e.keyCode === 48 && e.shiftKey || e.keyCode === 221) {
+        handleBracket(editor);
+      }
+    });
+  };
+
+  var Plugin = () => {
+    global$1.add('autolink', editor => {
+      register(editor);
+      setup(editor);
+    });
+  };
+
+  Plugin();
+
+})();
