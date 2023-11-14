@@ -1,5 +1,5 @@
 
-import { query } from "@/app/lib/db";
+import { db } from "@/app/lib/db";
 import { isAuthorized } from "@/app/lib/misc";
 import { NextResponse } from "next/server";
 
@@ -8,7 +8,7 @@ export async function GET(req:any, {params}: any) {
 	if (!auth) {
 		return NextResponse.json({success: false, message: 'Unauthorized'}, { status: 403})
 	}
-	const data = await query('SELECT * FROM news ORDER BY `createdAt` DESC');
+	const data = await db.news.getAll();
 
 	return NextResponse.json({ success: true, data: data }, { status: 200});
 }

@@ -1,4 +1,5 @@
 import NextAuth from "next-auth"
+// import { options } from "./discord_options"
 import { options } from "./options"
 
 const handler = NextAuth(options)

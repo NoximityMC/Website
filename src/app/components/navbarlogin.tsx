@@ -1,14 +1,20 @@
 import Image from "next/image";
 import styles from "../style/navbar.module.scss";
+import { Avatar } from "@nextui-org/react";
+import md5 from "md5";
 
 type User = {
-	name?: string | null | undefined;
-	email?: string | null | undefined;
-	image?: string | null | undefined;
-	rank?: {
-		name?: string;
-		color?: number;
-		id?: number;
+	username: string | null | undefined;
+	email: string | null | undefined;
+	discord : {
+		name: string;
+		rank: {
+			name?: string;
+			color?: number;
+			id?: number;
+		} | null | undefined;
+		staff: boolean;
+		admin: boolean;
 	} | null | undefined;
 } | undefined
 
@@ -19,38 +25,19 @@ type Props = {
 
 export default function Card({ user, pagetype }: Props) {
 
-	const greeting = user?.name ? (
-		<div>
-			Hello {user?.name}!
-		</div>
-	) : null
+	const hash = md5(user?.email!);
+	const avatar = `https://www.gravatar.com/avatar/${hash}`;
+	const userImage = <Avatar isBordered radius="full" size="md" style={{ marginRight: '10px' }} src={avatar} />
 
-	const emailDisplay = user?.email ? (
-		<div className="flex flex-col items-center p-6 bg-white rounded-lg font-bold text-5xl text-black">
-			{user?.email}
-		</div>
-	) : null
-
-	const userImage = user?.image ? (
-		<Image
-			className={styles.userImage}
-			src={user?.image}
-			width={64}
-			height={64}
-			alt={user?.name ?? "Profile Pic"}
-			priority={true}
-		/>
-	) : null
-
-	const userName = user?.name ? (
+	const userName = user?.username ? (
 		<p className={styles.userName}>
-			{user?.name}
+			{user?.username}
 		</p>
 	) : null
 
-	const userRank = (user?.rank && user?.rank.color) ? (
-		<p className={styles.userRank} style={{ backgroundColor: `#${(user?.rank?.color).toString(16)}`}}>
-			{user?.rank.name}
+	const userRank = (user?.discord?.rank && user.discord.rank.color) ? (
+		<p className={styles.userRank} style={{ backgroundColor: `#${(user?.discord.rank?.color).toString(16)}`}}>
+			{user?.discord.rank.name}
 		</p>
 	) : null
 

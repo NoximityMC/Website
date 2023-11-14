@@ -17,7 +17,7 @@ interface QueryConfig {
 
 export function useSession({
   	required = false,
-  	redirectTo = "/api/auth/signin?error=SessionExpired",
+  	redirectTo = "/",
   	queryConfig = {} as QueryConfig,
 } = {}) {
   	const query = useQuery(["session"], fetchSession, {
@@ -28,5 +28,5 @@ export function useSession({
 			redirect(redirectTo);
 		},
   	})
-	return [query.data, query.status === "loading"]
+	return [query.data, query.status === "loading", query.refetch]
 }

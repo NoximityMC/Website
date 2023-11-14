@@ -1,6 +1,9 @@
 import { getToken } from "next-auth/jwt";
 import { getSession } from "next-auth/react";
-import { Fetcher } from "swr";
+import { zxcvbn, zxcvbnOptions } from '@zxcvbn-ts/core'
+import * as zxcvbnCommonPackage from '@zxcvbn-ts/language-common'
+import * as zxcvbnEnPackage from '@zxcvbn-ts/language-en'
+import { compare, hash } from 'bcryptjs';
 
 export function AuthCheck(session: any, admin: boolean) {
 	if (session.user) {
@@ -13,19 +16,25 @@ export function AuthCheck(session: any, admin: boolean) {
 	return false;
 }
 
-export async function isAuthorized(req:any) {
+export async function isAuthorized(req:any, keyCheck: boolean = true) {
+	const cookies = req.cookies;
+	const csrf = cookies.get('next-auth.csrf-token')
 	const token = await getToken({req});
-	const session = getSession();
+	const session = await getSession();
 	const apiKey = req.headers.get('api-key');
-	const keyRes = await fetch(`${process.env.NEXTAUTH_URL}/api/key/${apiKey}`, {
-		cache: 'no-store'
-	});
-	var key = false;
-	if (keyRes.ok) {
-		var keyJson = await keyRes.json();
-		key = keyJson.success;
+	if (keyCheck) {
+		const keyRes = await fetch(`${process.env.NEXTAUTH_URL}/api/key/${apiKey}`, {
+			cache: 'no-store'
+		});
+		var key = false;
+		if (keyRes.ok) {
+			var keyJson = await keyRes.json();
+			key = keyJson.success;
+		}
+		return !!csrf || !!token || !!session || !!key;
+	} else {
+		return !!csrf || !!token || !!session;
 	}
-	return !!token || !!session || !!key;
 }
 
 export function extractFirstPart(inputString:string) {
@@ -147,4 +156,66 @@ export async function getDiscordInfo(userId: number, getSession = false) {
 	}
 }
 
+async function getDiscordToken(code: string): Promise<string> {
+	const params = new URLSearchParams()
+	params.append('client_id', process.env.DISCORD_CLIENT_ID!)
+    params.append('client_secret', process.env.DISCORD_CLIENT_SECRET!)
+    params.append('grant_type', 'authorization_code')
+    params.append('code', code)
+    params.append('redirect_uri', `${process.env.NEXTAUTH_URL!}/api/auth/discord`)
+    params.append('scope', 'identify');
+
+	const resp = await fetch('https://discord.com/api/oauth2/token', {
+		method: 'POST',
+		body: params,
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded',
+			Accept: 'application/json'
+		}
+	})
+
+	const data = await resp.json();
+	return data.access_token;
+}
+
+
+export async function getDiscordId(code: string): Promise<string> {
+	const token = await getDiscordToken(code);
+
+	const resp = await fetch('https://discord.com/api/users/@me', {
+		method: 'GET',
+		headers: {
+			"Authorization": `Bearer ${token}`
+		}
+	})
+
+	const data = await resp.json();
+	return data.id;
+}
+
 export const fetcher = (url: string) => fetch(url).then(res => res.json());
+
+const options = {
+  translations: zxcvbnEnPackage.translations,
+  graphs: zxcvbnCommonPackage.adjacencyGraphs,
+  dictionary: {
+    ...zxcvbnCommonPackage.dictionary,
+    ...zxcvbnEnPackage.dictionary,
+  },
+}
+
+zxcvbnOptions.setOptions(options)
+
+export function checkPassword(pswd: string) {
+	return zxcvbn(pswd);
+}
+
+export async function hashPassword(password: string) {
+	const hashedPassword = await hash(password, 12);
+	return hashedPassword;
+}
+
+export async function isPasswordValid(password: string, hashedPassword: string) {
+	const isValid = await compare(password, hashedPassword);
+	return isValid;
+}

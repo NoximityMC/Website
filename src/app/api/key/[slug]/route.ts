@@ -1,10 +1,16 @@
-import { query } from "@/app/lib/db";
+import { db } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET(req:any, { params }: any) {
-	const data = await query('SELECT * FROM api_keys WHERE `key` = ?', [params.slug]);
-	if (data.length === 0) {
-		return NextResponse.json({success: false, message: 'Key not found'}, { status: 404 })
+	if (!params.slug) {
+		return NextResponse.json({success: false, message: 'Missing one or more fields'}, { status: 400 })
 	}
-	return NextResponse.json({success: true, data: data[0] }, { status: 200 })
+
+	const exists = await db.api.exists(params.slug);
+	
+	if (exists) {
+		return NextResponse.json({success: true }, { status: 200 })
+	}
+	
+	return NextResponse.json({success: false, message: 'Key not found'}, { status: 404 })
 }

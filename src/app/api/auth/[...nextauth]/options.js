@@ -1,8 +1,7 @@
-import DiscordProvider from 'next-auth/providers/discord'
+import { db } from "@/app/lib/db"
+import { getDiscordInfo, isPasswordValid } from "@/app/lib/misc";
+import CredentialsProvider from "next-auth/providers/credentials"
 import Bottleneck from 'bottleneck';
-import { cookies } from "next/headers"
-import { Session } from 'inspector';
-import { getDiscordInfo } from '@/app/lib/misc';
 
 const limiter = new Bottleneck({
 	maxConcurrent: 1, // Number of concurrent requests
@@ -11,41 +10,83 @@ const limiter = new Bottleneck({
 
 export const options = {
 	providers: [
-		DiscordProvider({
-			clientId: process.env.DISCORD_CLIENT_ID,
-			clientSecret: process.env.DISCORD_CLIENT_SECRET,
-			token: "https://discord.com/api/oauth2/token",
-			userinfo: "https://discord.com/api/users/@me",
-			authorization: {
-				params: {
-					scope: "identify email"
+		CredentialsProvider({
+			name: 'Credentials',
+			credentials: {
+				username: { label: 'Username', type: 'input', placeholder: 'Your username' },
+				email: { label: 'Email Address', type: 'email', placeholder: 'your@email.com' },
+				password: { label: 'Password', type: 'password', placeholder: 'Your password' },
+				totpCode: { label: 'Two-Factor Code', type: 'input', placeholder: 'Code from authenticator app' }
+			},
+			async authorize(credentials, req) {
+				const user = await db.users.get.fromEmail(credentials.email);
+				if (!user) {
+					throw Error('invalid-user');
 				}
+
+				const match = isPasswordValid(credentials.password, user.password);
+				if (!match) {
+					throw Error('invalid-user')
+				}
+
+				if (!user.verifiedEmail || user.verifiedEmail == 0) {
+					throw Error('verify-email')
+				}
+
+				
+				const data = {
+					id: user.id,
+					uuid: user.uuid,
+					username: user.username,
+					email: user.email
+				}
+				
+				if (user.discordId) {
+					data.discord = {
+						id: user.discordId
+					}
+				}
+
+				return data
 			}
-		})
+		}),
 	],
 	callbacks: {
-		async session({ session, token, user }) {
-			if (session.user) {
-				session.user.id = token.sub;
+		async session({ session, token, user}) {
+			session.user = token.user;
+
+			const id = await db.users.discord.get(session.user.email);
+			if (id) {
+				session.user.discord = {
+					id: id
+				}
 				const memData = await limiter.schedule(async () => {
-					const data = await getDiscordInfo(session.user.id, true);
+					const data = await getDiscordInfo(id, true);
 					return data;
 				});
-	
-				session.user.name = memData.name;
-				session.user.rank = memData.rank;
-				session.user.staff = memData.staff;
-				session.user.admin = memData.admin;
+				session.user.discord.name = memData.name;
+				session.user.discord.rank = memData.rank;
+				session.user.discord.staff = memData.staff;
+				session.user.discord.admin = memData.admin;
+			} else {
+				session.user.discord = null;
 			}
 
 			return session;
 		},
 
-		async jwt({ token, account }){
-			if (account){
-				token.accessToken = account.access_token
+		async jwt({ token, user, account }) {
+			if (account && user) {
+				return {
+					...token,
+					user: {
+						...user,
+						account,
+					}
+				}
 			}
-			return token;
+
+			return token
 		}
 	}
 }
